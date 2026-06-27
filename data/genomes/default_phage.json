@@ -1,0 +1,9 @@
+{
+  "name": "Default Phage",
+  "description": "Standard phage template for players to modify",
+  "tail_fiber_dna": "AAAGAAAAAGAAAAAGAAAAAGAAAAAGAAAAAGAAAAAGAAAAAGAAAAAGAAAAAGAA",
+  "length": 20,
+  "creator": "PhageForge Team",
+  "created_date": "2024-01-01",
+  "version": "1.0"
+}
