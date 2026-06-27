@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
+
+# PROJECT() MUST COME IMMEDIATELY AFTER CMAKE_MINIMUM_REQUIRED()
 project(PhageForge VERSION 0.1.0 LANGUAGES CXX)
 
-# C++20 standard with optimizations for scientific computing
+# Now set C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -13,10 +15,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -march=native -
 if(APPLE)
     set(PLATFORM_LIBS "-framework Accelerate")
 elseif(UNIX)
-    set(PLATFORM_LIBS "-lopenblas -llapack")
+    find_package(OpenBLAS REQUIRED)
+    set(PLATFORM_LIBS ${OpenBLAS_LIBRARIES})
 endif()
 
 # External dependencies (header-only for Phase 1)
+# These must be added AFTER project() is defined
 add_subdirectory(extern/eigen-3.4.0)
 add_subdirectory(extern/tomlplusplus-3.4.0)
 add_subdirectory(extern/fmt-10.0.0)
