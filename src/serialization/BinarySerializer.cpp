@@ -2,6 +2,7 @@
 #include "../core/Exceptions.hpp"
 #include <fstream>
 #include <vector>
+#include <cstdint>
 
 namespace phageforge::serialization {
 
