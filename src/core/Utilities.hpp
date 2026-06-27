@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 #include <cmath>
+#include <random>
 
 namespace phageforge::core {
 
@@ -27,7 +28,7 @@ template<typename T>
     return value * value;
 }
 
-// --- Random Utilities (for Phase 1 testing) ---
+// --- Random Utilities ---
 [[nodiscard]] float randomFloat(float min_val, float max_val, std::mt19937& rng);
 
 } // namespace phageforge::core
