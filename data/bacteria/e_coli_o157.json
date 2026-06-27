@@ -1,0 +1,70 @@
+{
+  "name": "E. coli O157:H7",
+  "species": "Escherichia coli",
+  "strain": "O157:H7",
+  "description": "Enterohemorrhagic E. coli strain associated with foodborne illness",
+  "receptors": [
+    {
+      "id": "receptor_1",
+      "type": "LPS",
+      "position": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "charge": -1.5,
+      "radius": 0.4,
+      "binding_affinity": 0.0
+    },
+    {
+      "id": "receptor_2",
+      "type": "OmpC",
+      "position": {"x": 1.2, "y": 0.8, "z": 0.0},
+      "charge": -0.8,
+      "radius": 0.35,
+      "binding_affinity": 0.0
+    },
+    {
+      "id": "receptor_3",
+      "type": "OmpF",
+      "position": {"x": -1.0, "y": 1.5, "z": 0.0},
+      "charge": -0.6,
+      "radius": 0.35,
+      "binding_affinity": 0.0
+    },
+    {
+      "id": "receptor_4",
+      "type": "LamB",
+      "position": {"x": 0.5, "y": -1.2, "z": 0.0},
+      "charge": -1.0,
+      "radius": 0.4,
+      "binding_affinity": 0.0
+    },
+    {
+      "id": "receptor_5",
+      "type": "LPS",
+      "position": {"x": -1.5, "y": -0.8, "z": 0.0},
+      "charge": -1.5,
+      "radius": 0.4,
+      "binding_affinity": 0.0
+    }
+  ],
+  "growth_parameters": {
+    "doubling_time_minutes": 20.0,
+    "max_population_od600": 10.0,
+    "death_rate": 0.01
+  },
+  "quorum_sensing": {
+    "luxI_production": 0.5,
+    "luxR_production": 0.2,
+    "ahl_degradation": 0.1,
+    "quorum_threshold": 0.8
+  },
+  "antibiotic_resistance": {
+    "ampicillin": false,
+    "tetracycline": false,
+    "ciprofloxacin": false,
+    "vancomycin": true
+  },
+  "virulence_factors": [
+    "Shiga toxin 1 (Stx1)",
+    "Shiga toxin 2 (Stx2)",
+    "Intimin"
+  ]
+}
