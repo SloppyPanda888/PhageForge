@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../../src/biology/Codon.hpp"
-#include "../../src/core/Utilities.hpp"  // <-- ADD THIS!
+#include "../../src/core/Utilities.hpp"
+#include "../../src/core/Types.hpp"
 
 using namespace phageforge;
 
@@ -9,22 +10,24 @@ int main() {
     std::cout << "GoogleTest not installed - running basic tests" << std::endl;
     
     // Test 1: Valid codon
-    auto codon = biology::Codon::fromString("ATG");
-    if (codon) {
-        auto aa = codon->translate();
+    auto codon_opt = biology::Codon::fromString("ATG");
+    if (codon_opt) {
+        biology::Codon codon = *codon_opt;
+        core::AminoAcidCode aa = codon.translate();
         std::cout << "  ATG -> " << core::aminoAcidToString(aa) << " (Expected: MET)" << std::endl;
     }
     
     // Test 2: Stop codon
-    codon = biology::Codon::fromString("TAA");
-    if (codon) {
-        auto aa = codon->translate();
+    codon_opt = biology::Codon::fromString("TAA");
+    if (codon_opt) {
+        biology::Codon codon = *codon_opt;
+        core::AminoAcidCode aa = codon.translate();
         std::cout << "  TAA -> " << core::aminoAcidToString(aa) << " (Expected: STP)" << std::endl;
     }
     
     // Test 3: Invalid codon
-    codon = biology::Codon::fromString("XYZ");
-    if (!codon) {
+    codon_opt = biology::Codon::fromString("XYZ");
+    if (!codon_opt) {
         std::cout << "  XYZ -> Invalid (Expected: Invalid)" << std::endl;
     }
     
@@ -33,7 +36,8 @@ int main() {
     std::cout << "  AGT -> " << test_codon.toString() << " (Expected: AGT)" << std::endl;
     
     // Test 5: Get codons for amino acid
-    auto codons = biology::GeneticCode::instance().getCodonsForAminoAcid(core::AminoAcidCode::MET);
+    const biology::GeneticCode& code = biology::GeneticCode::instance();
+    auto codons = code.getCodonsForAminoAcid(core::AminoAcidCode::MET);
     std::cout << "  Methionine codons: ";
     for (const auto& c : codons) {
         if (c.isValid()) {
