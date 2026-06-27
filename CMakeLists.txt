@@ -8,22 +8,24 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Enable expensive optimizations but keep debug symbols for profiling
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -march=native -O3 -flto -g")
+# Enable warnings and optimizations
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3 -g")
 
-# Detect platform
+# Detect platform and set libraries
 if(APPLE)
     set(PLATFORM_LIBS "-framework Accelerate")
 elseif(UNIX)
-    find_package(OpenBLAS REQUIRED)
-    set(PLATFORM_LIBS ${OpenBLAS_LIBRARIES})
+    # Try to find OpenBLAS, but don't require it
+    find_package(OpenBLAS QUIET)
+    if(OpenBLAS_FOUND)
+        set(PLATFORM_LIBS ${OpenBLAS_LIBRARIES})
+        message(STATUS "OpenBLAS found")
+    else()
+        # Use standard math library if OpenBLAS not found
+        set(PLATFORM_LIBS "-lm")
+        message(STATUS "OpenBLAS not found, using standard math library")
+    endif()
 endif()
-
-# External dependencies (header-only for Phase 1)
-# These must be added AFTER project() is defined
-add_subdirectory(extern/eigen-3.4.0)
-add_subdirectory(extern/tomlplusplus-3.4.0)
-add_subdirectory(extern/fmt-10.0.0)
 
 # Main source subdirectories
 add_subdirectory(src)
@@ -35,11 +37,19 @@ enable_testing()
 # Global include directories for all targets
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/extern/eigen-3.4.0
-    ${CMAKE_CURRENT_SOURCE_DIR}/extern/tomlplusplus-3.4.0/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/extern/fmt-10.0.0/include
 )
 
-# Find Boost for ODE solving (will be used in Phase 2)
-find_package(Boost 1.75 REQUIRED COMPONENTS serialization)
-include_directories(${Boost_INCLUDE_DIRS})
+# Find Boost (optional for Phase 1 - will be needed for Phase 2)
+find_package(Boost 1.75 QUIET COMPONENTS serialization)
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    message(STATUS "Boost found: ${Boost_INCLUDE_DIRS}")
+else()
+    message(STATUS "Boost not found - Phase 2 will need it")
+endif()
+
+# Print configuration
+message(STATUS "PhageForge Configuration:")
+message(STATUS "  C++ Standard: ${CMAKE_CXX_STANDARD}")
+message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "  Platform: ${CMAKE_SYSTEM_NAME}")
