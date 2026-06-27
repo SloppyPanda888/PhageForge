@@ -1,5 +1,6 @@
 #include <iostream>
 #include "../../src/biology/Codon.hpp"
+#include "../../src/core/Utilities.hpp"  // <-- ADD THIS!
 
 using namespace phageforge;
 
@@ -28,7 +29,7 @@ int main() {
     }
     
     // Test 4: Codon to string
-    Codon test_codon(core::DNABase::ADENINE, core::DNABase::GUANINE, core::DNABase::THYMINE);
+    biology::Codon test_codon(core::DNABase::ADENINE, core::DNABase::GUANINE, core::DNABase::THYMINE);
     std::cout << "  AGT -> " << test_codon.toString() << " (Expected: AGT)" << std::endl;
     
     // Test 5: Get codons for amino acid
