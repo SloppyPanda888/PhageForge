@@ -2,6 +2,11 @@
 
 #include "../core/Types.hpp"
 #include <array>
+#include <optional>
+#include <string>
+
+// Use core types
+using phageforge::core::u32;
 
 namespace phageforge::biology {
 
