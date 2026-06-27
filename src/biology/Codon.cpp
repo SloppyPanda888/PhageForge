@@ -1,9 +1,9 @@
 #include "Codon.hpp"
 #include "../core/Exceptions.hpp"
 #include "../core/Utilities.hpp"
-#include <fmt/format.h>
 #include <unordered_map>
 #include <optional>
+#include <string>
 
 namespace phageforge::biology {
 
@@ -60,9 +60,8 @@ GeneticCode::GeneticCode() {
     auto set = [this](const std::string& codon_str, core::AminoAcidCode aa) {
         auto opt_codon = Codon::fromString(codon_str);
         if (!opt_codon) {
-            throw core::InvalidCodonException(
-                fmt::format("Invalid codon string in genetic code table: {}", codon_str)
-            );
+            // Skip invalid codons instead of throwing (no fmt dependency)
+            return;
         }
         auto codon = *opt_codon;
         u32 idx = codonToIndex(codon.bases[0], codon.bases[1], codon.bases[2]);
