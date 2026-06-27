@@ -3,6 +3,7 @@
 #include <chrono>
 #include "../../src/biology/Genome.hpp"
 #include "../../src/biology/AminoAcid.hpp"
+#include "../../src/core/Utilities.hpp"  // <-- ADD THIS!
 
 using namespace phageforge;
 
@@ -34,7 +35,7 @@ int main() {
     std::cout << "  T4 wild type length: " << t4.size() << " codons" << std::endl;
     
     // Test 6: JSON serialization
-    auto json = genome.toJSON();
+    std::string json = genome.toJSON();
     std::cout << "  JSON: " << json << std::endl;
     
     try {
