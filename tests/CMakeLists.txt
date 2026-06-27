@@ -55,3 +55,9 @@ else()
     add_executable(test_quorum unit/test_quorum.cpp)
     add_executable(test_binding_pathway integration/test_binding_pathway.cpp)
 endif()
+
+# Set output directory for test executables
+set_target_properties(test_codon test_genome test_electrostatics test_quorum test_binding_pathway
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
