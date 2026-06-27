@@ -1,0 +1,75 @@
+{
+  "name": "Pseudomonas aeruginosa",
+  "species": "Pseudomonas aeruginosa",
+  "strain": "PAO1",
+  "description": "Opportunistic pathogen, common in healthcare-associated infections",
+  "receptors": [
+    {
+      "id": "receptor_1",
+      "type": "LPS",
+      "position": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "charge": -2.0,
+      "radius": 0.45,
+      "binding_affinity": 0.0
+    },
+    {
+      "id": "receptor_2",
+      "type": "OprF",
+      "position": {"x": 1.5, "y": 1.0, "z": 0.0},
+      "charge": -1.2,
+      "radius": 0.4,
+      "binding_affinity": 0.0
+    },
+    {
+      "id": "receptor_3",
+      "type": "OprD",
+      "position": {"x": -1.2, "y": 1.8, "z": 0.0},
+      "charge": -0.5,
+      "radius": 0.35,
+      "binding_affinity": 0.0
+    },
+    {
+      "id": "receptor_4",
+      "type": "PilA",
+      "position": {"x": 0.8, "y": -1.5, "z": 0.0},
+      "charge": -1.8,
+      "radius": 0.3,
+      "binding_affinity": 0.0
+    },
+    {
+      "id": "receptor_5",
+      "type": "LPS",
+      "position": {"x": -1.8, "y": -1.0, "z": 0.0},
+      "charge": -2.0,
+      "radius": 0.45,
+      "binding_affinity": 0.0
+    }
+  ],
+  "growth_parameters": {
+    "doubling_time_minutes": 30.0,
+    "max_population_od600": 8.0,
+    "death_rate": 0.02
+  },
+  "quorum_sensing": {
+    "luxI_production": 0.8,
+    "luxR_production": 0.3,
+    "ahl_degradation": 0.15,
+    "quorum_threshold": 0.9
+  },
+  "antibiotic_resistance": {
+    "ampicillin": true,
+    "tetracycline": true,
+    "ciprofloxacin": false,
+    "vancomycin": false,
+    "meropenem": false,
+    "ceftazidime": false
+  },
+  "virulence_factors": [
+    "Elastase (LasB)",
+    "Alkaline protease",
+    "Pyocyanin",
+    "Exotoxin A",
+    "Rhamnolipids",
+    "Biofilm formation"
+  ]
+}
