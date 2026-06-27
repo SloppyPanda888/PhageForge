@@ -7,12 +7,6 @@ namespace phageforge::biology {
 
 /**
  * @brief Bacterial surface receptor for phage binding
- * 
- * For Phase 1: This is a stub. Phase 2 will implement:
- * - 3D positioning on bacterial surface
- * - Partial charge calculations
- * - Binding site geometry
- * - Receptor mutation in response to phage pressure
  */
 class Receptor {
 public:
