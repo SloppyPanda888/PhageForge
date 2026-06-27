@@ -2,6 +2,7 @@
 #include "biology/AminoAcid.hpp"
 #include "core/Constants.hpp"
 #include "core/Exceptions.hpp"
+#include "core/Utilities.hpp"  // <-- ADD THIS INCLUDE!
 #include <iostream>
 #include <random>
 #include <chrono>
