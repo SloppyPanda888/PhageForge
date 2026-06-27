@@ -1,4 +1,7 @@
 #include <iostream>
+#include "../../src/biology/Genome.hpp"
+#include "../../src/biology/Bacteria.hpp"
+#include "../../src/physics/Electrostatics.hpp"
 
 int main() {
     std::cout << "=== Binding Pathway Integration Tests ===" << std::endl;
