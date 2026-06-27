@@ -57,11 +57,12 @@ add_custom_command(
     COMMENT "Copying config files to build directory"
 )
 
-# Set the output directory to the build root so it's easy to find
+# Set the output directory to the build root
 set_target_properties(phageforge_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
-# Print status
-message(STATUS "PhageForge core library configured")
-message(STATUS "  Executable will be at: ${CMAKE_BINARY_DIR}/phageforge_test")
+# Make sure the library is built before tests
+set_target_properties(phageforge_core PROPERTIES
+    PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}"
+)
