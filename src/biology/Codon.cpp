@@ -1,7 +1,9 @@
 #include "Codon.hpp"
 #include "../core/Exceptions.hpp"
+#include "../core/Utilities.hpp"
+#include <fmt/format.h>
 #include <unordered_map>
-#include <fmt/format.h>  // For error messages
+#include <optional>
 
 namespace phageforge::biology {
 
@@ -53,10 +55,6 @@ constexpr u32 GeneticCode::codonToIndex(core::DNABase b1, core::DNABase b2, core
 GeneticCode::GeneticCode() {
     // Initialize all to STOP first
     m_translation_table.fill(core::AminoAcidCode::STOP);
-    
-    // Table based on NCBI standard genetic code
-    // Codon -> Amino Acid mapping
-    // We'll hardcode the 64 entries (this is a one-time initialization)
     
     // Helper lambda for setting a codon
     auto set = [this](const std::string& codon_str, core::AminoAcidCode aa) {
