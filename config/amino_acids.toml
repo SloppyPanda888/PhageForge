@@ -1,0 +1,277 @@
+# Physical properties of standard amino acids
+# Data compiled from multiple sources (NCBI, Kyte-Doolittle, etc.)
+
+[amino_acids]
+
+[amino_acids.ALA]
+one_letter = "A"
+three_letter = "ALA"
+full_name = "Alanine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 6.0
+hydrophobicity = 1.8
+van_der_waals_radius = 0.25
+molecular_weight = 89.09
+helix_propensity = 1.0
+sheet_propensity = 0.9
+turn_propensity = 0.5
+
+[amino_acids.ARG]
+one_letter = "R"
+three_letter = "ARG"
+full_name = "Arginine"
+net_charge_at_ph7 = 1.0
+isoelectric_point = 10.76
+hydrophobicity = -4.5
+van_der_waals_radius = 0.35
+molecular_weight = 174.20
+helix_propensity = 0.8
+sheet_propensity = 0.7
+turn_propensity = 0.3
+
+[amino_acids.ASN]
+one_letter = "N"
+three_letter = "ASN"
+full_name = "Asparagine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.41
+hydrophobicity = -3.5
+van_der_waals_radius = 0.28
+molecular_weight = 132.12
+helix_propensity = 0.9
+sheet_propensity = 0.8
+turn_propensity = 0.6
+
+[amino_acids.ASP]
+one_letter = "D"
+three_letter = "ASP"
+full_name = "Aspartic Acid"
+net_charge_at_ph7 = -1.0
+isoelectric_point = 2.77
+hydrophobicity = -3.5
+van_der_waals_radius = 0.28
+molecular_weight = 133.10
+helix_propensity = 0.7
+sheet_propensity = 0.8
+turn_propensity = 0.5
+
+[amino_acids.CYS]
+one_letter = "C"
+three_letter = "CYS"
+full_name = "Cysteine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.07
+hydrophobicity = 2.5
+van_der_waals_radius = 0.30
+molecular_weight = 121.16
+helix_propensity = 0.5
+sheet_propensity = 0.9
+turn_propensity = 0.4
+
+[amino_acids.GLN]
+one_letter = "Q"
+three_letter = "GLN"
+full_name = "Glutamine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.65
+hydrophobicity = -3.5
+van_der_waals_radius = 0.30
+molecular_weight = 146.15
+helix_propensity = 0.9
+sheet_propensity = 0.8
+turn_propensity = 0.6
+
+[amino_acids.GLU]
+one_letter = "E"
+three_letter = "GLU"
+full_name = "Glutamic Acid"
+net_charge_at_ph7 = -1.0
+isoelectric_point = 3.22
+hydrophobicity = -3.5
+van_der_waals_radius = 0.30
+molecular_weight = 147.13
+helix_propensity = 0.7
+sheet_propensity = 0.8
+turn_propensity = 0.5
+
+[amino_acids.GLY]
+one_letter = "G"
+three_letter = "GLY"
+full_name = "Glycine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.97
+hydrophobicity = -0.4
+van_der_waals_radius = 0.20
+molecular_weight = 75.07
+helix_propensity = 0.3
+sheet_propensity = 0.4
+turn_propensity = 0.9
+
+[amino_acids.HIS]
+one_letter = "H"
+three_letter = "HIS"
+full_name = "Histidine"
+net_charge_at_ph7 = 0.1  # Partial charge at pH 7
+isoelectric_point = 7.59
+hydrophobicity = -3.2
+van_der_waals_radius = 0.32
+molecular_weight = 155.16
+helix_propensity = 0.8
+sheet_propensity = 0.7
+turn_propensity = 0.4
+
+[amino_acids.ILE]
+one_letter = "I"
+three_letter = "ILE"
+full_name = "Isoleucine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 6.02
+hydrophobicity = 4.5
+van_der_waals_radius = 0.32
+molecular_weight = 131.17
+helix_propensity = 1.1
+sheet_propensity = 1.0
+turn_propensity = 0.3
+
+[amino_acids.LEU]
+one_letter = "L"
+three_letter = "LEU"
+full_name = "Leucine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.98
+hydrophobicity = 3.8
+van_der_waals_radius = 0.32
+molecular_weight = 131.17
+helix_propensity = 1.1
+sheet_propensity = 1.0
+turn_propensity = 0.3
+
+[amino_acids.LYS]
+one_letter = "K"
+three_letter = "LYS"
+full_name = "Lysine"
+net_charge_at_ph7 = 1.0
+isoelectric_point = 9.74
+hydrophobicity = -3.9
+van_der_waals_radius = 0.34
+molecular_weight = 146.19
+helix_propensity = 0.9
+sheet_propensity = 0.7
+turn_propensity = 0.4
+
+[amino_acids.MET]
+one_letter = "M"
+three_letter = "MET"
+full_name = "Methionine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.74
+hydrophobicity = 1.9
+van_der_waals_radius = 0.32
+molecular_weight = 149.21
+helix_propensity = 1.0
+sheet_propensity = 0.9
+turn_propensity = 0.3
+
+[amino_acids.PHE]
+one_letter = "F"
+three_letter = "PHE"
+full_name = "Phenylalanine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.48
+hydrophobicity = 2.8
+van_der_waals_radius = 0.35
+molecular_weight = 165.19
+helix_propensity = 0.9
+sheet_propensity = 0.9
+turn_propensity = 0.3
+
+[amino_acids.PRO]
+one_letter = "P"
+three_letter = "PRO"
+full_name = "Proline"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 6.30
+hydrophobicity = -1.6
+van_der_waals_radius = 0.30
+molecular_weight = 115.13
+helix_propensity = 0.3
+sheet_propensity = 0.4
+turn_propensity = 0.8
+
+[amino_acids.SER]
+one_letter = "S"
+three_letter = "SER"
+full_name = "Serine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.68
+hydrophobicity = -0.8
+van_der_waals_radius = 0.26
+molecular_weight = 105.09
+helix_propensity = 0.9
+sheet_propensity = 0.8
+turn_propensity = 0.6
+
+[amino_acids.THR]
+one_letter = "T"
+three_letter = "THR"
+full_name = "Threonine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.87
+hydrophobicity = -0.7
+van_der_waals_radius = 0.28
+molecular_weight = 119.12
+helix_propensity = 0.9
+sheet_propensity = 0.8
+turn_propensity = 0.5
+
+[amino_acids.TRP]
+one_letter = "W"
+three_letter = "TRP"
+full_name = "Tryptophan"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.89
+hydrophobicity = -0.9
+van_der_waals_radius = 0.38
+molecular_weight = 204.23
+helix_propensity = 0.8
+sheet_propensity = 0.9
+turn_propensity = 0.2
+
+[amino_acids.TYR]
+one_letter = "Y"
+three_letter = "TYR"
+full_name = "Tyrosine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.66
+hydrophobicity = -1.3
+van_der_waals_radius = 0.36
+molecular_weight = 181.19
+helix_propensity = 0.8
+sheet_propensity = 0.9
+turn_propensity = 0.3
+
+[amino_acids.VAL]
+one_letter = "V"
+three_letter = "VAL"
+full_name = "Valine"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 5.96
+hydrophobicity = 4.2
+van_der_waals_radius = 0.30
+molecular_weight = 117.15
+helix_propensity = 1.0
+sheet_propensity = 1.0
+turn_propensity = 0.3
+
+[amino_acids.STOP]
+one_letter = "*"
+three_letter = "STP"
+full_name = "Stop Codon"
+net_charge_at_ph7 = 0.0
+isoelectric_point = 0.0
+hydrophobicity = 0.0
+van_der_waals_radius = 0.0
+molecular_weight = 0.0
+helix_propensity = 0.0
+sheet_propensity = 0.0
+turn_propensity = 0.0
