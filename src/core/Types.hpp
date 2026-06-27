@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <random>
+#include <cmath>
 
 namespace phageforge::core {
 
@@ -21,9 +23,9 @@ using f32 = float;
 using f64 = double;
 
 // --- Biological Constants ---
-static constexpr u32 MAX_CODONS_PER_GENE = 512;   // Max 512 codons (170 amino acids)
+static constexpr u32 MAX_CODONS_PER_GENE = 512;
 static constexpr u32 NUM_BASES_PER_CODON = 3;
-static constexpr u32 MAX_PHAGE_TAIL_LENGTH = 20;  // Only the tip matters for binding
+static constexpr u32 MAX_PHAGE_TAIL_LENGTH = 20;
 
 // --- DNA Base Representation ---
 enum class DNABase : u8 {
@@ -34,7 +36,6 @@ enum class DNABase : u8 {
     INVALID   = 0xFF
 };
 
-// Convert base to char for display
 [[nodiscard]] constexpr char baseToChar(DNABase base) noexcept {
     switch(base) {
         case DNABase::ADENINE:  return 'A';
@@ -45,7 +46,6 @@ enum class DNABase : u8 {
     }
 }
 
-// Convert char to base (case insensitive)
 [[nodiscard]] constexpr DNABase charToBase(char c) noexcept {
     switch(c) {
         case 'A': case 'a': return DNABase::ADENINE;
@@ -56,49 +56,34 @@ enum class DNABase : u8 {
     }
 }
 
-// --- Standard Amino Acid 3-Letter Codes ---
+// --- Standard Amino Acid Codes ---
 enum class AminoAcidCode : u8 {
     ALA, ARG, ASN, ASP, CYS, GLN, GLU, GLY, HIS, ILE,
     LEU, LYS, MET, PHE, PRO, SER, THR, TRP, TYR, VAL,
-    STOP  // Termination codon
+    STOP
 };
 
-// Convert amino acid to human-readable string
-[[nodiscard]] std::string aminoAcidToString(AminoAcidCode aa) noexcept;
-
-// Convert 3-letter code to enum (e.g., "ALA" -> AminoAcidCode::ALA)
-[[nodiscard]] std::optional<AminoAcidCode> stringToAminoAcid(const std::string& three_letter) noexcept;
-
-// --- Physical Properties of Amino Acids (will be loaded from TOML) ---
+// --- Physical Properties of Amino Acids ---
 struct AminoAcidProperties {
     AminoAcidCode code;
-    std::string one_letter;           // e.g., "A" for Alanine
-    std::string three_letter;         // e.g., "ALA"
-    std::string full_name;            // e.g., "Alanine"
+    std::string one_letter;
+    std::string three_letter;
+    std::string full_name;
     
-    // Charged properties (in units of elementary charge, e)
-    float net_charge_at_ph7;          // -1.0 for Asp/Glu, +1.0 for Lys/Arg, 0 for neutral
-    float isoelectric_point;          // pI for pH-dependent charging (future)
-    
-    // Hydrophobicity (Kyte-Doolittle scale, typically -4.5 to +4.5)
-    float hydrophobicity;             // Positive = hydrophobic, Negative = hydrophilic
-    
-    // Physical dimensions (in nanometers)
-    float van_der_waals_radius;       // Radius of the amino acid side chain
-    float molecular_weight;           // In Daltons (g/mol)
-    
-    // Flexiblity / secondary structure propensity
-    float helix_propensity;           // 0.0 to 1.0
-    float sheet_propensity;           // 0.0 to 1.0
-    float turn_propensity;            // 0.0 to 1.0
+    float net_charge_at_ph7;
+    float isoelectric_point;
+    float hydrophobicity;
+    float van_der_waals_radius;
+    float molecular_weight;
+    float helix_propensity;
+    float sheet_propensity;
+    float turn_propensity;
 };
 
-// --- Position in 3D space (using Eigen in the physics layer) ---
-// We define a lightweight alias here to avoid coupling core to Eigen
+// --- Position in 3D Space ---
 struct Point3D {
     float x, y, z;
     
-    // Basic operations (no Eigen dependency)
     [[nodiscard]] Point3D operator+(const Point3D& other) const noexcept;
     [[nodiscard]] Point3D operator-(const Point3D& other) const noexcept;
     [[nodiscard]] Point3D operator*(float scalar) const noexcept;
