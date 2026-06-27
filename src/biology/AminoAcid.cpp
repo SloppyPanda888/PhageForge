@@ -32,13 +32,9 @@ void AminoAcidPropertiesManager::setProperty(core::AminoAcidCode code,
     props.turn_propensity = 0.5f;
 }
 
-void AminoAcidPropertiesManager::loadFromTOML(const std::string& /*filepath*/) {  // Comment out parameter name
-    // Phase 1: Manually set properties for all 20 amino acids
-    // This avoids needing toml++ library for Phase 1
-    
+void AminoAcidPropertiesManager::loadFromTOML(const std::string& /*filepath*/) {
     std::cout << "  Loading amino acid properties (hardcoded for Phase 1)..." << std::endl;
     
-    // Set all 20 amino acids
     setProperty(core::AminoAcidCode::ALA, "A", "ALA", "Alanine", 0.0f, 1.8f, 0.25f, 89.09f);
     setProperty(core::AminoAcidCode::ARG, "R", "ARG", "Arginine", 1.0f, -4.5f, 0.35f, 174.20f);
     setProperty(core::AminoAcidCode::ASN, "N", "ASN", "Asparagine", 0.0f, -3.5f, 0.28f, 132.12f);
@@ -79,8 +75,7 @@ const core::AminoAcidProperties& AminoAcidPropertiesManager::getProperties(core:
     return it->second;
 }
 
-float AminoAcidPropertiesManager::getChargeAtPH(core::AminoAcidCode aa, float /*ph*/) const {  // Comment out parameter name
-    // Simplified: just return pH 7 charge for now
+float AminoAcidPropertiesManager::getChargeAtPH(core::AminoAcidCode aa, float /*ph*/) const {
     return getNetCharge(aa);
 }
 
