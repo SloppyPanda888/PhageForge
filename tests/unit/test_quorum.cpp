@@ -1,4 +1,5 @@
 #include <iostream>
+#include "../../src/biology/QuorumSensing.hpp"  // <-- ADD THIS!
 
 int main() {
     std::cout << "=== Quorum Sensing Tests ===" << std::endl;
