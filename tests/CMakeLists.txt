@@ -1,59 +1,57 @@
-# Phase 1: Core biological data layer
+# Unit tests - GoogleTest is optional for Phase 1
+find_package(GTest QUIET)
 
-# Define the static library for core types and biology
-add_library(phageforge_core STATIC
-    # Core
-    core/Utilities.cpp
+if(GTest_FOUND)
+    enable_testing()
     
-    # Biology
-    biology/Codon.cpp
-    biology/AminoAcid.cpp
-    biology/Genome.cpp
-    biology/QuorumSensing.cpp
-    biology/Bacteria.cpp
-    biology/Receptor.cpp
+    # Codon tests
+    add_executable(test_codon
+        unit/test_codon.cpp
+    )
+    target_link_libraries(test_codon PRIVATE phageforge_core GTest::GTest GTest::Main)
+    target_include_directories(test_codon PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+    add_test(NAME CodonTests COMMAND test_codon)
     
-    # Physics (stubs for Phase 1 - just empty implementations)
-    physics/Electrostatics.cpp
-    physics/BindingAssay.cpp
-    physics/VectorMath.cpp
+    # Genome tests
+    add_executable(test_genome
+        unit/test_genome.cpp
+    )
+    target_link_libraries(test_genome PRIVATE phageforge_core GTest::GTest GTest::Main)
+    target_include_directories(test_genome PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+    add_test(NAME GenomeTests COMMAND test_genome)
     
-    # Serialization
-    serialization/JSONSerializer.cpp
-    serialization/BinarySerializer.cpp
-)
-
-# Include directories for the library
-target_include_directories(phageforge_core PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-)
-
-# Link dependencies
-target_link_libraries(phageforge_core
-    PUBLIC
-    ${Boost_LIBRARIES}
-    ${PLATFORM_LIBS}
-)
-
-# The main test harness executable
-add_executable(phageforge_test
-    main.cpp
-)
-
-# Link the core library to the test harness
-target_link_libraries(phageforge_test
-    PRIVATE
-    phageforge_core
-    ${PLATFORM_LIBS}
-)
-
-# Make sure the test harness can find the config file at runtime
-# This copies the config directory to the build folder
-add_custom_command(
-    TARGET phageforge_test POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/../config
-        ${CMAKE_CURRENT_BINARY_DIR}/config
-    COMMENT "Copying config files to build directory"
-)
+    # Electrostatics tests
+    add_executable(test_electrostatics
+        unit/test_electrostatics.cpp
+    )
+    target_link_libraries(test_electrostatics PRIVATE phageforge_core GTest::GTest GTest::Main)
+    target_include_directories(test_electrostatics PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+    add_test(NAME ElectrostaticsTests COMMAND test_electrostatics)
+    
+    # Quorum sensing tests
+    add_executable(test_quorum
+        unit/test_quorum.cpp
+    )
+    target_link_libraries(test_quorum PRIVATE phageforge_core GTest::GTest GTest::Main)
+    target_include_directories(test_quorum PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+    add_test(NAME QuorumTests COMMAND test_quorum)
+    
+    # Integration tests
+    add_executable(test_binding_pathway
+        integration/test_binding_pathway.cpp
+    )
+    target_link_libraries(test_binding_pathway PRIVATE phageforge_core GTest::GTest GTest::Main)
+    target_include_directories(test_binding_pathway PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+    add_test(NAME BindingPathwayTests COMMAND test_binding_pathway)
+    
+    message(STATUS "GoogleTest found - Unit tests enabled")
+else()
+    message(STATUS "GoogleTest not found - Unit tests disabled")
+    
+    # Create stub executables that just print "Tests disabled"
+    add_executable(test_codon unit/test_codon.cpp)
+    add_executable(test_genome unit/test_genome.cpp)
+    add_executable(test_electrostatics unit/test_electrostatics.cpp)
+    add_executable(test_quorum unit/test_quorum.cpp)
+    add_executable(test_binding_pathway integration/test_binding_pathway.cpp)
+endif()
