@@ -1,4 +1,5 @@
 #include <iostream>
+#include "../../src/physics/Electrostatics.hpp"  // <-- ADD THIS!
 
 int main() {
     std::cout << "=== Electrostatics Tests ===" << std::endl;
