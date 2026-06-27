@@ -92,3 +92,15 @@ struct Point3D {
 };
 
 } // namespace phageforge::core
+
+// Make core types available in the global namespace for convenience
+using phageforge::core::u8;
+using phageforge::core::u16;
+using phageforge::core::u32;
+using phageforge::core::u64;
+using phageforge::core::i8;
+using phageforge::core::i16;
+using phageforge::core::i32;
+using phageforge::core::i64;
+using phageforge::core::f32;
+using phageforge::core::f64;
