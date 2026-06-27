@@ -13,7 +13,7 @@ add_library(phageforge_core STATIC
     biology/Bacteria.cpp
     biology/Receptor.cpp
     
-    # Physics
+    # Physics (stubs for Phase 1)
     physics/VectorMath.cpp
     physics/Electrostatics.cpp
     physics/BindingAssay.cpp
@@ -56,3 +56,12 @@ add_custom_command(
         ${CMAKE_CURRENT_BINARY_DIR}/config
     COMMENT "Copying config files to build directory"
 )
+
+# Set the output directory to the build root so it's easy to find
+set_target_properties(phageforge_test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+# Print status
+message(STATUS "PhageForge core library configured")
+message(STATUS "  Executable will be at: ${CMAKE_BINARY_DIR}/phageforge_test")
