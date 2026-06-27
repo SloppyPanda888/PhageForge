@@ -5,6 +5,9 @@
 #include <optional>
 #include <string>
 
+// Use core types
+using phageforge::core::u32;
+
 namespace phageforge::biology {
 
 // --- Codon Implementation ---
@@ -60,7 +63,6 @@ GeneticCode::GeneticCode() {
     auto set = [this](const std::string& codon_str, core::AminoAcidCode aa) {
         auto opt_codon = Codon::fromString(codon_str);
         if (!opt_codon) {
-            // Skip invalid codons instead of throwing (no fmt dependency)
             return;
         }
         auto codon = *opt_codon;
@@ -181,7 +183,7 @@ const GeneticCode& GeneticCode::instance() noexcept {
 
 core::AminoAcidCode GeneticCode::lookup(const Codon& codon) const noexcept {
     if (!codon.isValid()) {
-        return core::AminoAcidCode::STOP;  // Invalid codons act as terminators
+        return core::AminoAcidCode::STOP;
     }
     u32 idx = codonToIndex(codon.bases[0], codon.bases[1], codon.bases[2]);
     return m_translation_table[idx];
@@ -191,13 +193,11 @@ std::array<Codon, 6> GeneticCode::getCodonsForAminoAcid(core::AminoAcidCode aa) 
     std::array<Codon, 6> result;
     size_t count = 0;
     
-    // Brute force search (64 entries, called rarely, fine for initialization)
     for (u32 i = 0; i < 64; ++i) {
         if (m_translation_table[i] == aa) {
-            // Convert index back to codon
-            u32 b1_idx = (i >> 4) & 0x3;  // Bits 4-5
-            u32 b2_idx = (i >> 2) & 0x3;  // Bits 2-3
-            u32 b3_idx = i & 0x3;         // Bits 0-1
+            u32 b1_idx = (i >> 4) & 0x3;
+            u32 b2_idx = (i >> 2) & 0x3;
+            u32 b3_idx = i & 0x3;
             
             auto b1 = static_cast<core::DNABase>(b1_idx);
             auto b2 = static_cast<core::DNABase>(b2_idx);
@@ -209,7 +209,6 @@ std::array<Codon, 6> GeneticCode::getCodonsForAminoAcid(core::AminoAcidCode aa) 
         }
     }
     
-    // Fill remaining slots with invalid codons
     while (count < result.size()) {
         result[count++] = Codon{};
     }
