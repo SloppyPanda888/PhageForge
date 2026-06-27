@@ -37,8 +37,8 @@ public:
     // Mutation (Phase 2 implementation)
     void mutateReceptors() { /* Phase 2 implementation */ }
     
-    // Quorum sensing (Phase 2 implementation)
-    void updateQuorumSensing(float dt) { /* Phase 2 implementation */ }
+    // Quorum sensing (Phase 2 implementation) - Fix: comment out parameter name
+    void updateQuorumSensing(float /*dt*/) { /* Phase 2 implementation */ }
     float getAHLConcentration() const { return 0.0f; }
     
 private:
