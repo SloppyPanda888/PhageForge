@@ -43,3 +43,52 @@ The game leverages human intuition for pattern recognition and 3D spatial reason
 ---
 
 ## Architecture Overview
+PhageForge/
+├── src/
+│ ├── biology/ # Biological data models
+│ │ ├── Codon # DNA codon → amino acid translation
+│ │ ├── AminoAcid # Amino acid physical properties
+│ │ ├── Genome # Phage genome representation
+│ │ ├── Bacteria # Bacterial strain (stub)
+│ │ ├── QuorumSensing # Quorum sensing system (stub)
+│ │ └── Receptor # Bacterial surface receptor (stub)
+│ ├── core/ # Core utilities
+│ │ ├── Types # Type aliases and enums
+│ │ ├── Constants # Physical constants
+│ │ ├── Exceptions # Exception classes
+│ │ └── Utilities # Helper functions
+│ ├── physics/ # Physics engine (stubs)
+│ │ ├── Electrostatics # Debye-Hückel solver
+│ │ ├── BindingAssay # Binding scoring
+│ │ └── VectorMath # 3D math utilities
+│ ├── serialization/ # Data persistence
+│ │ ├── JSONSerializer # JSON serialization
+│ │ └── BinarySerializer # Binary serialization (future)
+│ └── main.cpp # Test harness
+├── tests/ # Unit and integration tests
+├── config/ # Configuration files
+│ └── amino_acids.toml # Amino acid property database
+├── data/ # Game data
+│ ├── bacteria/ # Bacterial strain definitions
+│ └── genomes/ # Phage genome templates
+└── docs/ # Documentation
+
+---
+
+## Component Specifications
+
+### 1. DNA Codon System (Codon.hpp/cpp)
+
+**Purpose**: Translate DNA codons (3-base sequences) to amino acids using the standard genetic code.
+
+**Key Features**:
+- `Codon` struct with 3 DNA bases
+- `fromString()` – Parse codon from "ATG" format
+- `toString()` – Convert codon to string
+- `translate()` – Look up amino acid in genetic code table
+- `isValid()` – Validate codon bases
+
+**Example**:
+```cpp
+auto codon = Codon::fromString("ATG");
+AminoAcidCode aa = codon->translate();  // Returns MET
