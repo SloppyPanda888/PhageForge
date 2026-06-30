@@ -19,14 +19,17 @@ elseif(UNIX)
     endif()
 endif()
 
+# Phase 2: Boost is now REQUIRED - but use 1.74 if you have it
+# Changed from 1.75 to 1.74 to match your system
+find_package(Boost 1.74 REQUIRED COMPONENTS serialization)
+include_directories(${Boost_INCLUDE_DIRS})
+
+# Main source subdirectories
 add_subdirectory(src)
 add_subdirectory(tests)
 
+# Enable testing
 enable_testing()
-
-# PHASE 2: Boost is now REQUIRED!
-find_package(Boost 1.75 REQUIRED COMPONENTS serialization)
-include_directories(${Boost_INCLUDE_DIRS})
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
