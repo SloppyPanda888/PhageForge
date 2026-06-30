@@ -3,6 +3,7 @@
 #include "../core/Types.hpp"
 #include "Receptor.hpp"
 #include "QuorumSensing.hpp"
+#include "Genome.hpp"  // <-- ADD THIS INCLUDE!
 #include <vector>
 #include <string>
 #include <random>
