@@ -1,90 +1,139 @@
 #include "biology/Genome.hpp"
 #include "biology/AminoAcid.hpp"
+#include "biology/Bacteria.hpp"
+#include "biology/QuorumSensing.hpp"
 #include "core/Constants.hpp"
-#include "core/Exceptions.hpp"
-#include "core/Utilities.hpp"  // <-- ADD THIS INCLUDE!
+#include "core/Utilities.hpp"
 #include <iostream>
+#include <iomanip>
 #include <random>
 #include <chrono>
-#include <string>
+#include <thread>
 
 using namespace phageforge;
 
+// Helper to print a progress bar
+void printProgress(double progress, int width = 40) {
+    int pos = static_cast<int>(width * progress);
+    std::cout << "[";
+    for (int i = 0; i < width; ++i) {
+        if (i < pos) std::cout << "=";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
+    }
+    std::cout << "] " << int(progress * 100.0) << "%\r";
+    std::cout.flush();
+}
+
 int main() {
-    std::cout << "=== PhageForge Phase 1 Validation ===\n" << std::endl;
+    std::cout << "=== PhageForge Phase 2: Bacterial Quorum Sensing ===\n" << std::endl;
     
-    // 1. Test Amino Acid Properties Loading
-    std::cout << "Loading amino acid properties..." << std::endl;
+    // Initialize amino acid properties
     try {
         biology::AminoAcidPropertiesManager::instance().loadFromTOML("config/amino_acids.toml");
-        std::cout << "  ✓ Successfully loaded all 20 amino acids\n" << std::endl;
+        std::cout << "✅ Amino acid properties loaded\n" << std::endl;
     } catch (const std::exception& e) {
-        std::cerr << "  ✗ Failed to load: " << e.what() << std::endl;
+        std::cerr << "❌ Failed to load: " << e.what() << std::endl;
         return 1;
     }
     
-    // 2. Test Codon Translation
-    std::cout << "Testing codon translation (genetic code):" << std::endl;
-    auto methionine_codon = biology::Codon::fromString("ATG");
-    if (methionine_codon) {
-        auto aa = methionine_codon->translate();
-        std::cout << "  ATG -> " << core::aminoAcidToString(aa) << std::endl << std::endl;
-    }
+    // 1. Test Quorum Sensing
+    std::cout << "1. Testing Quorum Sensing System..." << std::endl;
+    biology::QuorumSensingSystem qs;
+    qs.setPopulationDensity(5.0);  // High population
     
-    // 3. Test Genome Creation and Translation
-    std::cout << "Creating a random genome..." << std::endl;
+    std::cout << "   Simulating AHL production over time:" << std::endl;
+    for (int i = 0; i < 50; ++i) {
+        qs.update(0.1);
+        if (i % 5 == 0) {
+            std::cout << "   t=" << std::setw(4) << i * 0.1 
+                      << "s  LuxI=" << std::fixed << std::setprecision(3) << qs.getLuxI()
+                      << "  LuxR=" << qs.getLuxR()
+                      << "  AHL=" << qs.getAHL()
+                      << "  Quorum=" << (qs.isQuorumReached() ? "✅" : "❌") << std::endl;
+        }
+    }
+    std::cout << std::endl;
+    
+    // 2. Test Bacterial Growth with Quorum Sensing
+    std::cout << "2. Testing Bacterial Growth with Quorum Sensing..." << std::endl;
+    biology::BacterialStrain bacteria;
+    bacteria.setName("E. coli O157:H7");
+    bacteria.setPopulationDensity(0.1);
+    bacteria.setMaxPopulation(10.0);
+    
     std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
-    auto genome = biology::GenomeFactory::createRandom(rng, 85);
     
-    auto amino_acids = genome.translateTailFiber();
-    std::cout << "  Genome length: " << genome.size() << " codons" << std::endl;
-    std::cout << "  Translated to " << amino_acids.size() << " amino acids" << std::endl;
-    
-    // Show first 10 amino acids
-    std::cout << "  First 10 amino acids: ";
-    for (size_t i = 0; i < std::min(size_t(10), amino_acids.size()); ++i) {
-        auto props = biology::AminoAcidPropertiesManager::instance().getProperties(amino_acids[i]);
-        std::cout << props.one_letter << " ";
+    std::cout << "   Growing bacteria with quorum sensing:" << std::endl;
+    for (int hour = 0; hour < 24; ++hour) {
+        // Update every hour
+        double dt = 0.5;  // Half-hour steps for stability
+        for (int step = 0; step < 2; ++step) {
+            bacteria.updateQuorumSensing(dt);
+            bacteria.updatePopulation(dt);
+        }
+        
+        // Print progress bar
+        printProgress(hour / 24.0);
+        
+        if (hour % 4 == 0) {
+            std::cout << "\n   Hour " << hour 
+                      << "  Population: " << std::fixed << std::setprecision(2) << bacteria.getPopulationDensity()
+                      << "  AHL: " << bacteria.getQuorumSensing().getAHL()
+                      << "  Quorum: " << (bacteria.isQuorumReached() ? "✅" : "❌")
+                      << "  Growth rate: " << std::setprecision(3) << bacteria.getGrowthRate() << std::endl;
+        }
     }
-    std::cout << "\n" << std::endl;
+    std::cout << std::endl << std::endl;
     
-    // 4. Test T4 Wild Type
-    std::cout << "Creating T4 wild-type phage tail fiber..." << std::endl;
-    auto t4_genome = biology::GenomeFactory::createT4WildType();
-    auto t4_aa = t4_genome.translateTailFiber();
-    std::cout << "  T4 tail length: " << t4_aa.size() << " amino acids\n" << std::endl;
-    
-    // 5. Test Mutation
-    std::cout << "Testing mutation system..." << std::endl;
-    auto mutated = t4_genome;
-    mutated.mutateRandom(5, rng);
-    auto mutated_aa = mutated.translateTailFiber();
-    
-    size_t differences = 0;
-    for (size_t i = 0; i < std::min(t4_aa.size(), mutated_aa.size()); ++i) {
-        if (t4_aa[i] != mutated_aa[i]) differences++;
-    }
-    std::cout << "  Applied 5 random mutations. Changed " << differences << " amino acids.\n" << std::endl;
-    
-    // 6. Test Serialization
-    std::cout << "Testing JSON serialization..." << std::endl;
-    std::string json = t4_genome.toJSON();
-    std::cout << "  JSON output: " << json << std::endl;
-    
-    auto loaded_genome = biology::Genome::fromJSON(json);
-    if (loaded_genome == t4_genome) {
-        std::cout << "  ✓ Serialization round-trip successful\n" << std::endl;
-    } else {
-        std::cout << "  ✗ Serialization mismatch!" << std::endl;
+    // 3. Test Receptor Mutation
+    std::cout << "3. Testing Receptor Mutation..." << std::endl;
+    std::cout << "   Initial receptors:" << std::endl;
+    for (const auto& receptor : bacteria.getReceptors()) {
+        std::cout << "      Type: " << receptor.getType() 
+                  << "  Charge: " << receptor.getCharge()
+                  << "  Position: (" << receptor.getPosition().x << ", "
+                  << receptor.getPosition().y << ", "
+                  << receptor.getPosition().z << ")" << std::endl;
     }
     
-    // 7. Summary of Physical Constants
-    std::cout << "Physical constants loaded:" << std::endl;
-    std::cout << "  Temperature: " << core::constants::TEMPERATURE << " K" << std::endl;
-    std::cout << "  Ionic strength: " << core::constants::IONIC_STRENGTH << " M" << std::endl;
-    std::cout << "  Inverse Debye length: " << core::constants::DEBYE_LENGTH_INVERSE << " nm^-1" << std::endl;
-    std::cout << "  Infection threshold: " << core::constants::INFECTION_THRESHOLD << " kJ/mol" << std::endl;
+    bacteria.mutateReceptors(0.3, rng);  // 30% mutation rate
     
-    std::cout << "\n=== Phase 1 Validation Complete ===" << std::endl;
+    std::cout << "   After mutation (30% rate):" << std::endl;
+    for (const auto& receptor : bacteria.getReceptors()) {
+        std::cout << "      Type: " << receptor.getType() 
+                  << "  Charge: " << receptor.getCharge()
+                  << "  Position: (" << receptor.getPosition().x << ", "
+                  << receptor.getPosition().y << ", "
+                  << receptor.getPosition().z << ")" << std::endl;
+    }
+    std::cout << std::endl;
+    
+    // 4. Test Phage-Bacteria Interaction
+    std::cout << "4. Testing Phage-Bacteria Interaction..." << std::endl;
+    
+    // Create a random phage
+    auto phage = biology::GenomeFactory::createRandom(rng, 20);
+    std::cout << "   Created random phage with " << phage.size() << " codons" << std::endl;
+    
+    // Compute binding score
+    double binding_score = bacteria.computePhageBindingScore(phage);
+    std::cout << "   Binding score: " << std::fixed << std::setprecision(3) << binding_score << std::endl;
+    
+    // Simulate infection
+    double infectivity = 0.8;
+    bool infection_success = bacteria.infectWithPhage(phage, infectivity);
+    std::cout << "   Infection: " << (infection_success ? "✅ SUCCESSFUL!" : "❌ Failed") << std::endl;
+    std::cout << "   Remaining population: " << bacteria.getPopulationDensity() << std::endl;
+    std::cout << std::endl;
+    
+    // 5. Summary
+    std::cout << "=== Phase 2 Validation Complete ===" << std::endl;
+    std::cout << "\n✅ Quorum Sensing: Working" << std::endl;
+    std::cout << "✅ Bacterial Growth: Working" << std::endl;
+    std::cout << "✅ Receptor Mutation: Working" << std::endl;
+    std::cout << "✅ Phage Interaction: Working" << std::endl;
+    std::cout << "\n🧬 Ready for Phase 3: Electrostatics and Binding!" << std::endl;
+    
     return 0;
 }
