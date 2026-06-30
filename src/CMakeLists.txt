@@ -1,23 +1,23 @@
-# Phase 2: Core biological data layer with Quorum Sensing
+# PhageForge - Complete Core Library (Phases 1-3)
 
 add_library(phageforge_core STATIC
-    # Core
+    # --- Core Utilities (Phase 1) ---
     core/Utilities.cpp
     
-    # Biology (Phase 2: Full implementation)
-    biology/Codon.cpp
-    biology/AminoAcid.cpp
-    biology/Genome.cpp
-    biology/QuorumSensing.cpp
-    biology/Bacteria.cpp
-    biology/Receptor.cpp
+    # --- Biology Layer (Phase 1-2) ---
+    biology/Codon.cpp          # Phase 1: DNA codon translation
+    biology/AminoAcid.cpp      # Phase 1: Amino acid properties
+    biology/Genome.cpp         # Phase 1: Genome manipulation
+    biology/Receptor.cpp       # Phase 1: Receptor stub (Phase 2: full impl)
+    biology/Bacteria.cpp       # Phase 2: Bacterial dynamics
+    biology/QuorumSensing.cpp  # Phase 2: Quorum sensing with Boost::odeint
     
-    # Physics (stubs for Phase 1)
-    physics/VectorMath.cpp
-    physics/Electrostatics.cpp
-    physics/BindingAssay.cpp
+    # --- Physics Layer (Phase 1-3) ---
+    physics/VectorMath.cpp     # Phase 1: 3D math utilities
+    physics/Electrostatics.cpp # Phase 3: Debye-Hückel solver (NOW FULL!)
+    physics/BindingAssay.cpp   # Phase 3: Binding scoring (NOW FULL!)
     
-    # Serialization
+    # --- Serialization (Phase 1) ---
     serialization/JSONSerializer.cpp
     serialization/BinarySerializer.cpp
 )
@@ -28,14 +28,14 @@ target_include_directories(phageforge_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-# Link dependencies (Boost is now required!)
+# Link dependencies
 target_link_libraries(phageforge_core
     PUBLIC
     ${Boost_LIBRARIES}
     ${PLATFORM_LIBS}
 )
 
-# The main test harness executable
+# --- Main Test Harness ---
 add_executable(phageforge_test
     main.cpp
 )
