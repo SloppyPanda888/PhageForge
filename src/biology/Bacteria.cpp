@@ -10,15 +10,15 @@ BacterialStrain::BacterialStrain() {
     // Initialize with some default receptors
     Receptor r1;
     r1.setPosition({0.0, 0.0, 0.0});
-    r1.setCharge(-1.5);
-    r1.setRadius(0.4);
+    r1.setCharge(-1.5f);
+    r1.setRadius(0.4f);
     r1.setType("LPS");
     m_receptors.push_back(r1);
     
     Receptor r2;
-    r2.setPosition({1.0, 0.8, 0.0});
-    r2.setCharge(-0.8);
-    r2.setRadius(0.35);
+    r2.setPosition({1.0f, 0.8f, 0.0f});
+    r2.setCharge(-0.8f);
+    r2.setRadius(0.35f);
     r2.setType("OmpF");
     m_receptors.push_back(r2);
 }
@@ -77,13 +77,13 @@ void BacterialStrain::mutateReceptor(Receptor& receptor, std::mt19937& rng) {
     
     // Mutate position slightly
     core::Point3D pos = receptor.getPosition();
-    pos.x += static_cast<float>(dist(rng)) * 0.2;
-    pos.y += static_cast<float>(dist(rng)) * 0.2;
-    pos.z += static_cast<float>(dist(rng)) * 0.2;
+    pos.x += static_cast<float>(dist(rng)) * 0.2f;
+    pos.y += static_cast<float>(dist(rng)) * 0.2f;
+    pos.z += static_cast<float>(dist(rng)) * 0.2f;
     receptor.setPosition(pos);
     
     // Mutate radius
-    float new_radius = receptor.getRadius() + static_cast<float>(dist(rng)) * 0.05;
+    float new_radius = receptor.getRadius() + static_cast<float>(dist(rng)) * 0.05f;
     receptor.setRadius(std::max(0.1f, new_radius));
 }
 
@@ -137,6 +137,10 @@ double BacterialStrain::getBindingResistance() const {
         total_charge += receptor.getCharge();
     }
     return std::abs(total_charge) / m_receptors.size();
+}
+
+double BacterialStrain::logisticGrowth(double population, double max_pop, double rate) {
+    return rate * population * (1.0 - population / max_pop);
 }
 
 } // namespace phageforge::biology
