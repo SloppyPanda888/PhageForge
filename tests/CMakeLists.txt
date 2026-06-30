@@ -1,9 +1,6 @@
 # Unit tests - GoogleTest is optional for Phase 1
 find_package(GTest QUIET)
 
-# IMPORTANT: Link the core library to all test executables
-# This must be done regardless of whether GoogleTest is found
-
 if(GTest_FOUND)
     enable_testing()
     
@@ -58,7 +55,7 @@ else()
     add_executable(test_quorum unit/test_quorum.cpp)
     add_executable(test_binding_pathway integration/test_binding_pathway.cpp)
     
-    # CRITICAL: Link with core library
+    # Link with core library
     target_link_libraries(test_codon PRIVATE phageforge_core ${PLATFORM_LIBS})
     target_link_libraries(test_genome PRIVATE phageforge_core ${PLATFORM_LIBS})
     target_link_libraries(test_electrostatics PRIVATE phageforge_core ${PLATFORM_LIBS})
