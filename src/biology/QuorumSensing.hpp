@@ -1,56 +1,70 @@
 #pragma once
 
 #include "../core/Types.hpp"
+#include <boost/numeric/odeint.hpp>
+#include <array>
+#include <vector>
 
 namespace phageforge::biology {
 
 /**
- * @brief Quorum sensing system for bacterial communication
+ * @brief Quorum Sensing System for Bacterial Communication
  * 
- * For Phase 1: This is a stub. Phase 2 will implement:
- * - LuxI/LuxR protein dynamics
- * - AHL (Autoinducer) production and degradation
- * - ODE solver using Boost::odeint
- * - Phenotype switching based on population density
+ * Models the LuxI/LuxR/AHL system using ODEs:
+ * - d(LuxI)/dt = production - degradation
+ * - d(LuxR)/dt = production - degradation
+ * - d(AHL)/dt = LuxI * LuxR - degradation
  */
 class QuorumSensingSystem {
 public:
-    QuorumSensingSystem() = default;
+    // State vector: [LuxI, LuxR, AHL]
+    using State = std::array<double, 3>;
+    
+    QuorumSensingSystem();
     ~QuorumSensingSystem() = default;
     
-    // Update the system (Phase 2 implementation)
-    void update(float dt) { 
-        // Phase 2: Implement ODE integration
-        // d(LuxI)/dt = production - degradation
-        // d(LuxR)/dt = production - degradation
-        // d(AHL)/dt = LuxI * LuxR - degradation
-        (void)dt;  // Suppress unused parameter warning
-    }
+    // Update the system (ODE integration)
+    void update(double dt);
     
-    // Get current concentrations (Phase 2 implementation)
-    float getAHLConcentration() const { return m_ahl; }
-    float getLuxIConcentration() const { return m_luxI; }
-    float getLuxRConcentration() const { return m_luxR; }
+    // Getters for current concentrations
+    double getLuxI() const { return m_state[0]; }
+    double getLuxR() const { return m_state[1]; }
+    double getAHL() const { return m_state[2]; }
+    double getPopulationFactor() const { return m_population_factor; }
     
-    // Check if quorum has been reached (Phase 2 implementation)
-    bool isQuorumReached() const { return m_ahl > m_quorum_threshold; }
+    // Setters for parameters
+    void setPopulationDensity(double density) { m_population_density = density; }
+    void setQuorumThreshold(double threshold) { m_quorum_threshold = threshold; }
+    void setProductionRates(double luxI_prod, double luxR_prod);
     
-    // Set parameters (Phase 2 implementation)
-    void setQuorumThreshold(float threshold) { m_quorum_threshold = threshold; }
-    float getQuorumThreshold() const { return m_quorum_threshold; }
+    // Check if quorum is reached
+    bool isQuorumReached() const { return m_state[2] > m_quorum_threshold; }
     
     // Reset the system
-    void reset() {
-        m_ahl = 0.0f;
-        m_luxI = 0.0f;
-        m_luxR = 0.0f;
-    }
+    void reset();
+    
+    // Get the state for visualization
+    const State& getState() const { return m_state; }
     
 private:
-    float m_ahl = 0.0f;      // Autoinducer (AHL) concentration
-    float m_luxI = 0.0f;     // LuxI synthase concentration
-    float m_luxR = 0.0f;     // LuxR receptor concentration
-    float m_quorum_threshold = 0.8f;  // AHL threshold for quorum
+    State m_state;                    // [LuxI, LuxR, AHL]
+    double m_population_density;       // Bacterial population (OD600)
+    double m_population_factor;        // Population influence on production
+    double m_quorum_threshold;         // AHL threshold for quorum
+    
+    // Parameters (Phase 2)
+    double m_luxI_production;          // α: LuxI production rate
+    double m_luxI_degradation;         // β: LuxI degradation rate
+    double m_luxR_production;          // γ: LuxR production rate
+    double m_luxR_degradation;         // δ: LuxR degradation rate
+    double m_ahl_synthase_factor;      // ε: AHL synthesis from LuxI*LuxR
+    double m_ahl_degradation;          // ζ: AHL degradation rate
+    
+    // ODE stepper
+    boost::numeric::odeint::runge_kutta_dopri5<State> m_stepper;
+    
+    // Helper to compute derivatives
+    void computeDerivatives(const State& x, State& dxdt, double t);
 };
 
 } // namespace phageforge::biology
