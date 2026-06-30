@@ -2,25 +2,18 @@
 
 #include "../core/Types.hpp"
 #include <cmath>
+#include <vector>
 
 namespace phageforge::physics {
 
 /**
- * @brief Vector math utilities for physics calculations
+ * @brief Vector math utilities for 3D physics calculations
  * 
- * All functions are inline for performance in physics simulations
+ * All functions are inline for performance
  */
 
-// Convert between Point3D and other formats (Phase 3)
-// For now, provide utility functions
+// --- Basic Operations ---
 
-/**
- * @brief Calculate the distance between two 3D points
- * 
- * @param a First point
- * @param b Second point
- * @return Distance in nm
- */
 [[nodiscard]] inline float distance(const core::Point3D& a, const core::Point3D& b) {
     float dx = a.x - b.x;
     float dy = a.y - b.y;
@@ -28,14 +21,6 @@ namespace phageforge::physics {
     return std::sqrt(dx*dx + dy*dy + dz*dz);
 }
 
-/**
- * @brief Calculate the squared distance between two 3D points
- * (Faster than distance() when you only need to compare distances)
- * 
- * @param a First point
- * @param b Second point
- * @return Squared distance in nm^2
- */
 [[nodiscard]] inline float squaredDistance(const core::Point3D& a, const core::Point3D& b) {
     float dx = a.x - b.x;
     float dy = a.y - b.y;
@@ -43,24 +28,10 @@ namespace phageforge::physics {
     return dx*dx + dy*dy + dz*dz;
 }
 
-/**
- * @brief Calculate the dot product of two 3D vectors
- * 
- * @param a First vector
- * @param b Second vector
- * @return Dot product
- */
 [[nodiscard]] inline float dotProduct(const core::Point3D& a, const core::Point3D& b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-/**
- * @brief Calculate the cross product of two 3D vectors
- * 
- * @param a First vector
- * @param b Second vector
- * @return Cross product vector
- */
 [[nodiscard]] inline core::Point3D crossProduct(const core::Point3D& a, const core::Point3D& b) {
     return core::Point3D{
         a.y * b.z - a.z * b.y,
@@ -69,22 +40,10 @@ namespace phageforge::physics {
     };
 }
 
-/**
- * @brief Calculate the magnitude (length) of a 3D vector
- * 
- * @param v Vector
- * @return Magnitude
- */
 [[nodiscard]] inline float magnitude(const core::Point3D& v) {
     return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
-/**
- * @brief Normalize a 3D vector (make it unit length)
- * 
- * @param v Vector to normalize
- * @return Normalized vector
- */
 [[nodiscard]] inline core::Point3D normalize(const core::Point3D& v) {
     float mag = magnitude(v);
     if (mag < 1e-10f) {
@@ -93,20 +52,95 @@ namespace phageforge::physics {
     return core::Point3D{v.x / mag, v.y / mag, v.z / mag};
 }
 
-/**
- * @brief Linear interpolation between two points
- * 
- * @param a Start point
- * @param b End point
- * @param t Interpolation factor (0.0 to 1.0)
- * @return Interpolated point
- */
 [[nodiscard]] inline core::Point3D lerp(const core::Point3D& a, const core::Point3D& b, float t) {
     return core::Point3D{
         a.x + (b.x - a.x) * t,
         a.y + (b.y - a.y) * t,
         a.z + (b.z - a.z) * t
     };
+}
+
+[[nodiscard]] inline core::Point3D operator+(const core::Point3D& a, const core::Point3D& b) {
+    return core::Point3D{a.x + b.x, a.y + b.y, a.z + b.z};
+}
+
+[[nodiscard]] inline core::Point3D operator-(const core::Point3D& a, const core::Point3D& b) {
+    return core::Point3D{a.x - b.x, a.y - b.y, a.z - b.z};
+}
+
+[[nodiscard]] inline core::Point3D operator*(const core::Point3D& a, float scalar) {
+    return core::Point3D{a.x * scalar, a.y * scalar, a.z * scalar};
+}
+
+// --- Advanced Operations ---
+
+/**
+ * @brief Calculate the angle between two vectors (radians)
+ */
+[[nodiscard]] inline float angleBetween(const core::Point3D& a, const core::Point3D& b) {
+    float dot = dotProduct(a, b);
+    float mag_a = magnitude(a);
+    float mag_b = magnitude(b);
+    if (mag_a < 1e-10f || mag_b < 1e-10f) return 0.0f;
+    return std::acos(std::max(-1.0f, std::min(1.0f, dot / (mag_a * mag_b))));
+}
+
+/**
+ * @brief Rotate a point around an axis
+ */
+[[nodiscard]] inline core::Point3D rotateAroundAxis(
+    const core::Point3D& point,
+    const core::Point3D& axis,
+    float angle_radians) {
+    
+    float c = std::cos(angle_radians);
+    float s = std::sin(angle_radians);
+    float t = 1.0f - c;
+    
+    core::Point3D axis_norm = normalize(axis);
+    
+    // Rodrigues' rotation formula
+    core::Point3D result;
+    result.x = (t * axis_norm.x * axis_norm.x + c) * point.x +
+               (t * axis_norm.x * axis_norm.y - s * axis_norm.z) * point.y +
+               (t * axis_norm.x * axis_norm.z + s * axis_norm.y) * point.z;
+    
+    result.y = (t * axis_norm.x * axis_norm.y + s * axis_norm.z) * point.x +
+               (t * axis_norm.y * axis_norm.y + c) * point.y +
+               (t * axis_norm.y * axis_norm.z - s * axis_norm.x) * point.z;
+    
+    result.z = (t * axis_norm.x * axis_norm.z - s * axis_norm.y) * point.x +
+               (t * axis_norm.y * axis_norm.z + s * axis_norm.x) * point.y +
+               (t * axis_norm.z * axis_norm.z + c) * point.z;
+    
+    return result;
+}
+
+/**
+ * @brief Create a helix path for phage tail fiber
+ */
+[[nodiscard]] inline std::vector<core::Point3D> createHelix(
+    float radius,
+    float pitch,
+    int num_points,
+    float start_angle = 0.0f) {
+    
+    std::vector<core::Point3D> points;
+    points.reserve(num_points);
+    
+    for (int i = 0; i < num_points; ++i) {
+        float t = static_cast<float>(i) / num_points;
+        float angle = start_angle + t * 2.0f * 3.14159f * 3.0f; // 3 turns
+        float z = t * pitch;
+        
+        points.push_back({
+            radius * std::cos(angle),
+            radius * std::sin(angle),
+            z
+        });
+    }
+    
+    return points;
 }
 
 } // namespace phageforge::physics
