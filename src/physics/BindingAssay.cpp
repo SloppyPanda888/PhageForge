@@ -1,9 +1,8 @@
 #include "BindingAssay.hpp"
-#include "../core/Constants.hpp"
 
 namespace phageforge::physics {
 
-// Phase 1 stub - Phase 3 will implement full binding scoring
-// This file exists so the library links properly
+// All functions are implemented inline in the header
+// This .cpp file exists to provide a translation unit for the library
 
 } // namespace phageforge::physics
