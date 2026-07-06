@@ -1,5 +1,6 @@
 # PhageForge - Complete Core Library with GUI
 
+# --- Core Library ---
 add_library(phageforge_core STATIC
     # Core
     core/Utilities.cpp
@@ -39,6 +40,13 @@ target_link_libraries(phageforge_core
 # --- GUI Application ---
 add_executable(phageforge
     main_gui.cpp
+    # ImGui Source Files (added directly)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_draw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_tables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/backends/imgui_impl_glfw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/backends/imgui_impl_opengl3.cpp
 )
 
 target_link_libraries(phageforge
@@ -48,7 +56,6 @@ target_link_libraries(phageforge
     ${OPENGL_LIBRARIES}
     glfw
     GLEW
-    imgui
 )
 
 # --- CLI Test Harness ---
