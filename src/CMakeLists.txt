@@ -1,10 +1,10 @@
 # PhageForge - Complete Core Library with GUI
 
 add_library(phageforge_core STATIC
-    # --- Core Utilities (Phase 1) ---
+    # Core
     core/Utilities.cpp
     
-    # --- Biology Layer (Phase 1-2) ---
+    # Biology
     biology/Codon.cpp
     biology/AminoAcid.cpp
     biology/Genome.cpp
@@ -12,33 +12,31 @@ add_library(phageforge_core STATIC
     biology/Bacteria.cpp
     biology/QuorumSensing.cpp
     
-    # --- Physics Layer (Phase 1-3) ---
+    # Physics
     physics/VectorMath.cpp
     physics/Electrostatics.cpp
     physics/BindingAssay.cpp
     
-    # --- Serialization (Phase 1) ---
+    # Serialization
     serialization/JSONSerializer.cpp
     serialization/BinarySerializer.cpp
     
-    # --- Phase 4: GUI ---
+    # GUI
     gui/PhageEditor.cpp
 )
 
-# Include directories for the library
 target_include_directories(phageforge_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-# Link dependencies
 target_link_libraries(phageforge_core
     PUBLIC
     ${Boost_LIBRARIES}
     ${PLATFORM_LIBS}
 )
 
-# --- Main Application (with GUI) ---
+# --- GUI Application ---
 add_executable(phageforge
     main_gui.cpp
 )
@@ -50,9 +48,10 @@ target_link_libraries(phageforge
     ${OPENGL_LIBRARIES}
     glfw
     GLEW
+    imgui
 )
 
-# --- Test Harness (Terminal only) - Use your existing main.cpp renamed ---
+# --- CLI Test Harness ---
 add_executable(phageforge_test
     main_cli.cpp
 )
