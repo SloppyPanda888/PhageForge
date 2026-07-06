@@ -28,17 +28,16 @@ find_package(GLEW REQUIRED)
 # Boost
 find_package(Boost 1.74 REQUIRED COMPONENTS serialization)
 
-# Add ImGui
-add_subdirectory(extern/imgui)
-
 add_subdirectory(src)
 add_subdirectory(tests)
 
 enable_testing()
 
+# ImGui includes (direct, no subdirectory)
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui/backends
     ${Boost_INCLUDE_DIRS}
     ${OPENGL_INCLUDE_DIRS}
 )
