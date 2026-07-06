@@ -1,4 +1,4 @@
-# PhageForge - Complete Core Library with GUI
+# PhageForge - Core Library (NO GUI dependencies)
 
 # --- Core Library ---
 add_library(phageforge_core STATIC
@@ -21,9 +21,6 @@ add_library(phageforge_core STATIC
     # Serialization
     serialization/JSONSerializer.cpp
     serialization/BinarySerializer.cpp
-    
-    # GUI
-    gui/PhageEditor.cpp
 )
 
 target_include_directories(phageforge_core PUBLIC
@@ -40,13 +37,21 @@ target_link_libraries(phageforge_core
 # --- GUI Application ---
 add_executable(phageforge
     main_gui.cpp
-    # ImGui Source Files (added directly)
+    gui/PhageEditor.cpp
+    # ImGui Source Files
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_draw.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_widgets.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_tables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/backends/imgui_impl_glfw.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(phageforge PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/backends
 )
 
 target_link_libraries(phageforge
