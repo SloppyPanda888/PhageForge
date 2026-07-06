@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -O3 -g")
 
 if(APPLE)
-    set(PLATFORM_LIBS "-framework Accelerate")
+    set(PLATFORM_LIBS "-framework Accelerate -framework OpenGL")
 elseif(UNIX)
     find_package(OpenBLAS QUIET)
     if(OpenBLAS_FOUND)
@@ -17,22 +17,26 @@ elseif(UNIX)
     else()
         set(PLATFORM_LIBS "-lm")
     endif()
+    set(PLATFORM_LIBS "${PLATFORM_LIBS} -lGL -lGLU")
 endif()
 
-# Phase 2: Boost is now REQUIRED - but use 1.74 if you have it
-# Changed from 1.75 to 1.74 to match your system
-find_package(Boost 1.74 REQUIRED COMPONENTS serialization)
-include_directories(${Boost_INCLUDE_DIRS})
+# Phase 4: GUI Libraries
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(GLEW REQUIRED)
 
-# Main source subdirectories
+# Boost
+find_package(Boost 1.74 REQUIRED COMPONENTS serialization)
+
 add_subdirectory(src)
 add_subdirectory(tests)
 
-# Enable testing
 enable_testing()
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${Boost_INCLUDE_DIRS}
+    ${OPENGL_INCLUDE_DIRS}
 )
 
 message(STATUS "PhageForge Configuration:")
@@ -40,3 +44,4 @@ message(STATUS "  C++ Standard: ${CMAKE_CXX_STANDARD}")
 message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Platform: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "  Boost: ${Boost_INCLUDE_DIRS}")
+message(STATUS "  OpenGL: ${OPENGL_INCLUDE_DIRS}")
