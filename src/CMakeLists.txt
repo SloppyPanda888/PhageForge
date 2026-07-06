@@ -23,8 +23,6 @@ add_library(phageforge_core STATIC
     
     # --- Phase 4: GUI ---
     gui/PhageEditor.cpp
-    gui/BacteriaViewer.cpp
-    gui/BindingVisualizer.cpp
 )
 
 # Include directories for the library
@@ -38,16 +36,11 @@ target_link_libraries(phageforge_core
     PUBLIC
     ${Boost_LIBRARIES}
     ${PLATFORM_LIBS}
-    ${OPENGL_LIBRARIES}
-    glfw
-    GLEW
 )
 
 # --- Main Application (with GUI) ---
 add_executable(phageforge
-    main.cpp
-    render/OpenGLRenderer.cpp
-    render/Shader.cpp
+    main_gui.cpp
 )
 
 target_link_libraries(phageforge
@@ -59,7 +52,7 @@ target_link_libraries(phageforge
     GLEW
 )
 
-# --- Test Harness (Terminal only) ---
+# --- Test Harness (Terminal only) - Use your existing main.cpp renamed ---
 add_executable(phageforge_test
     main_cli.cpp
 )
