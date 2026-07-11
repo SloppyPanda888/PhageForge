@@ -51,7 +51,9 @@ void onGenomeChanged() {
 void renderHelp() {
     if (!g_state.show_help) return;
     
-    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SetNextWindowPos(ImVec2(400, 200), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help);
     ImGui::Text("PhageForge - Phage Design Game");
     ImGui::Separator();
     ImGui::Text("How to Play:");
@@ -72,15 +74,21 @@ void renderHelp() {
     ImGui::End();
 }
 
-// Main GUI window
+// Main GUI window - fills entire screen
 void renderMainWindow() {
-    // Main window - locked to full size with no movement
+    // Get the current window size and set main window to fill it
+    GLFWwindow* window = glfwGetCurrentContext();
+    int display_w, display_h;
+    glfwGetWindowSize(window, &display_w, &display_h);
+    
+    // Set main window to fill the entire GLFW window
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(1400, 800), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2((float)display_w, (float)display_h), ImGuiCond_Always);
     
     ImGui::Begin("PhageForge - Main", nullptr, 
         ImGuiWindowFlags_NoMove | 
         ImGuiWindowFlags_NoResize | 
+        ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_MenuBar);
     
     // Menu bar
@@ -106,17 +114,22 @@ void renderMainWindow() {
         ImGui::EndMenuBar();
     }
     
-    // Status bar with larger font
+    // Status bar
     ImGui::Text("Status: %s", g_state.show_binding_results ? "Binding calculated" : "Ready");
     ImGui::SameLine();
     ImGui::Text("| Score: %.1f/100", g_state.binding_score);
     
     ImGui::Separator();
     
-    // Two-column layout with proper widths
+    // Calculate column widths based on window size
+    float col_width = (display_w - 20) / 2;
+    float col1_width = col_width;
+    float col2_width = col_width;
+    
+    // Two-column layout
     ImGui::Columns(2, "MainColumns", true);
-    ImGui::SetColumnWidth(0, 650);  // Left column wider for genome editor
-    ImGui::SetColumnWidth(1, 650);  // Right column for results
+    ImGui::SetColumnWidth(0, col1_width);
+    ImGui::SetColumnWidth(1, col2_width);
     
     // Left column: Phage Editor
     ImGui::Text("Phage Genome");
@@ -144,7 +157,7 @@ void renderMainWindow() {
         
         // Progress bar
         float progress = std::min(1.0f, g_state.binding_score / 100.0f);
-        ImGui::ProgressBar(progress, ImVec2(-1, 25), 
+        ImGui::ProgressBar(progress, ImVec2(-1, 30), 
             std::to_string(int(g_state.binding_score)).c_str());
         
         ImGui::Separator();
@@ -164,7 +177,7 @@ void renderMainWindow() {
                 receptor.getPosition().z);
         }
         
-        if (ImGui::Button("Recalculate Binding", ImVec2(200, 35))) {
+        if (ImGui::Button("Recalculate Binding", ImVec2(-1, 40))) {
             onGenomeChanged();
         }
     } else {
@@ -195,30 +208,47 @@ int main() {
         return 1;
     }
     
-    // Create window
+    // Get the primary monitor's resolution to make the window fullscreen-ish
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+    
+    // Create window - use most of the screen
+    int window_width = mode->width * 0.9;
+    int window_height = mode->height * 0.9;
+    int window_x = (mode->width - window_width) / 2;
+    int window_y = (mode->height - window_height) / 2;
+    
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     
-    GLFWwindow* window = glfwCreateWindow(1400, 820, "PhageForge - Phage Design Studio", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(window_width, window_height, 
+        "PhageForge - Phage Design Studio", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create window" << std::endl;
         glfwTerminate();
         return 1;
     }
     
+    glfwSetWindowPos(window, window_x, window_y);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     
-    // Setup Dear ImGui with larger font
+    // Setup Dear ImGui with large font
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     
-    // Increase font size - makes text more readable
-    ImGui::GetStyle().FontSize = 18.0f;
+    // BIGGER FONT!
+    ImGui::GetStyle().FontSize = 22.0f;
+    
+    // Increase UI element sizes
+    ImGui::GetStyle().FramePadding = ImVec2(8, 8);
+    ImGui::GetStyle().ItemSpacing = ImVec2(10, 10);
+    ImGui::GetStyle().ItemInnerSpacing = ImVec2(8, 8);
+    ImGui::GetStyle().WindowPadding = ImVec2(15, 15);
     
     ImGui::StyleColorsDark();
     
@@ -259,6 +289,7 @@ int main() {
     std::cout << "✅ GUI initialized" << std::endl;
     std::cout << "   Press ESC to exit" << std::endl;
     std::cout << "   Press F1 for help" << std::endl;
+    std::cout << "   Window size: " << window_width << "x" << window_height << std::endl;
     
     // Main loop
     while (!glfwWindowShouldClose(window)) {
@@ -304,3 +335,4 @@ int main() {
     
     return 0;
 }
+EOF
