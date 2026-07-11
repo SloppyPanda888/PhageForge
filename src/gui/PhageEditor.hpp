@@ -27,6 +27,8 @@ public:
     void clearGenome();
     
     int getSelectedCodon() const { return m_selected_codon; }
+    const std::string& getGenomeName() const { return m_genome_name; }
+    void setGenomeName(const std::string& name) { m_genome_name = name; }
     
 private:
     biology::Genome m_genome;
@@ -41,6 +43,11 @@ private:
     void drawAminoAcidInfo();
     void drawMutationControls();
     void drawGenomeStats();
+    void drawCodonTable();
+    
+    // Color helpers
+    static const char* getAminoColor(core::AminoAcidCode aa);
+    static ImVec4 getAminoColorImVec(core::AminoAcidCode aa);
 };
 
 } // namespace phageforge::gui
