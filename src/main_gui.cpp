@@ -242,9 +242,7 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     
     // --- SET FONT SIZE ---
-    // Load a larger font from the system
-    ImFont* font = io.Fonts->AddFontDefault();
-    // Scale the default font
+    // Scale the default font to be larger
     io.FontGlobalScale = 1.8f;  // 1.0 = normal, 1.8 = 80% larger
     
     // Increase UI element sizes
@@ -252,9 +250,6 @@ int main() {
     ImGui::GetStyle().ItemSpacing = ImVec2(12, 12);
     ImGui::GetStyle().ItemInnerSpacing = ImVec2(10, 10);
     ImGui::GetStyle().WindowPadding = ImVec2(20, 20);
-    ImGui::GetStyle().FontSize = 20.0f;  // This actually works in newer ImGui
-    
-    // Make everything bigger
     ImGui::GetStyle().WindowRounding = 5.0f;
     ImGui::GetStyle().FrameRounding = 4.0f;
     ImGui::GetStyle().ScrollbarSize = 20.0f;
