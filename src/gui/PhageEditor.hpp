@@ -45,9 +45,8 @@ private:
     void drawGenomeStats();
     void drawCodonTable();
     
-    // Color helpers
+    // Color helpers - now returns const char* only, ImVec4 handled in cpp
     static const char* getAminoColor(core::AminoAcidCode aa);
-    static ImVec4 getAminoColorImVec(core::AminoAcidCode aa);
 };
 
 } // namespace phageforge::gui
