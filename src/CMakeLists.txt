@@ -1,24 +1,17 @@
-# PhageForge - Core Library (NO GUI dependencies)
+# PhageForge - Core Library + GUI
 
 # --- Core Library ---
 add_library(phageforge_core STATIC
-    # Core
     core/Utilities.cpp
-    
-    # Biology
     biology/Codon.cpp
     biology/AminoAcid.cpp
     biology/Genome.cpp
     biology/Receptor.cpp
     biology/Bacteria.cpp
     biology/QuorumSensing.cpp
-    
-    # Physics
     physics/VectorMath.cpp
     physics/Electrostatics.cpp
     physics/BindingAssay.cpp
-    
-    # Serialization
     serialization/JSONSerializer.cpp
     serialization/BinarySerializer.cpp
 )
@@ -38,7 +31,7 @@ target_link_libraries(phageforge_core
 add_executable(phageforge
     main_gui.cpp
     gui/PhageEditor.cpp
-    # ImGui Source Files
+    # ImGui source files
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_draw.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_widgets.cpp
@@ -83,6 +76,16 @@ add_custom_command(
     COMMENT "Copying config files to build directory"
 )
 
+add_custom_command(
+    TARGET phageforge_test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/../config
+        ${CMAKE_CURRENT_BINARY_DIR}/config
+    COMMENT "Copying config files to build directory"
+)
+
 set_target_properties(phageforge phageforge_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
+message(STATUS "Building: phageforge (GUI) and phageforge_test (CLI)")
