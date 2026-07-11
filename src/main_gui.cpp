@@ -235,23 +235,34 @@ int main() {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     
-    // Setup Dear ImGui with large font
+    // Setup Dear ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     
-    // BIGGER FONT!
-    ImGui::GetStyle().FontSize = 22.0f;
+    // --- SET FONT SIZE ---
+    // Load a larger font from the system
+    ImFont* font = io.Fonts->AddFontDefault();
+    // Scale the default font
+    io.FontGlobalScale = 1.8f;  // 1.0 = normal, 1.8 = 80% larger
     
     // Increase UI element sizes
-    ImGui::GetStyle().FramePadding = ImVec2(8, 8);
-    ImGui::GetStyle().ItemSpacing = ImVec2(10, 10);
-    ImGui::GetStyle().ItemInnerSpacing = ImVec2(8, 8);
-    ImGui::GetStyle().WindowPadding = ImVec2(15, 15);
+    ImGui::GetStyle().FramePadding = ImVec2(10, 10);
+    ImGui::GetStyle().ItemSpacing = ImVec2(12, 12);
+    ImGui::GetStyle().ItemInnerSpacing = ImVec2(10, 10);
+    ImGui::GetStyle().WindowPadding = ImVec2(20, 20);
+    ImGui::GetStyle().FontSize = 20.0f;  // This actually works in newer ImGui
+    
+    // Make everything bigger
+    ImGui::GetStyle().WindowRounding = 5.0f;
+    ImGui::GetStyle().FrameRounding = 4.0f;
+    ImGui::GetStyle().ScrollbarSize = 20.0f;
+    ImGui::GetStyle().GrabMinSize = 15.0f;
     
     ImGui::StyleColorsDark();
     
+    // Setup ImGui backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 150");
     
@@ -289,6 +300,7 @@ int main() {
     std::cout << "✅ GUI initialized" << std::endl;
     std::cout << "   Press ESC to exit" << std::endl;
     std::cout << "   Press F1 for help" << std::endl;
+    std::cout << "   Font scale: 1.8x (large text)" << std::endl;
     std::cout << "   Window size: " << window_width << "x" << window_height << std::endl;
     
     // Main loop
