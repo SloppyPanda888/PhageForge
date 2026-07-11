@@ -7,8 +7,19 @@
 #include <random>
 #include <chrono>
 #include <map>
+#include <cstdio>
 
 namespace phageforge::gui {
+
+// Helper function to convert hex color to ImVec4 (only in cpp)
+static ImVec4 hexToImVec4(const char* hex) {
+    if (hex[0] == '#') {
+        unsigned int r, g, b;
+        sscanf(hex + 1, "%02x%02x%02x", &r, &g, &b);
+        return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
+    }
+    return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+}
 
 PhageEditor::PhageEditor() {
     randomizeGenome();
@@ -103,7 +114,7 @@ void PhageEditor::drawCodonEditor() {
             try {
                 auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
                 aa_str = props.one_letter;
-                color = getAminoColorImVec(aa);
+                color = hexToImVec4(getAminoColor(aa));
             } catch (...) {
                 aa_str = "?";
             }
@@ -304,17 +315,6 @@ const char* PhageEditor::getAminoColor(core::AminoAcidCode aa) {
         default:
             return "#FFFFFF";
     }
-}
-
-ImVec4 PhageEditor::getAminoColorImVec(core::AminoAcidCode aa) {
-    const char* hex = getAminoColor(aa);
-    // Convert hex to ImVec4 (simplified)
-    if (hex[0] == '#') {
-        unsigned int r, g, b;
-        sscanf(hex + 1, "%02x%02x%02x", &r, &g, &b);
-        return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
-    }
-    return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 void PhageEditor::randomizeGenome() {
