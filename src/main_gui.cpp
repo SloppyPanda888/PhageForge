@@ -51,7 +51,7 @@ void onGenomeChanged() {
 void renderHelp() {
     if (!g_state.show_help) return;
     
-    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help);
+    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("PhageForge - Phage Design Game");
     ImGui::Separator();
     ImGui::Text("How to Play:");
@@ -74,6 +74,8 @@ void renderHelp() {
 
 // Main GUI window
 void renderMainWindow() {
+    // Main window with proper size
+    ImGui::SetNextWindowSize(ImVec2(1200, 700), ImGuiCond_FirstUseEver);
     ImGui::Begin("PhageForge - Main", nullptr, ImGuiWindowFlags_MenuBar);
     
     // Menu bar
@@ -106,8 +108,10 @@ void renderMainWindow() {
     
     ImGui::Separator();
     
-    // Two-column layout
+    // Two-column layout with proper widths
     ImGui::Columns(2, "MainColumns", true);
+    ImGui::SetColumnWidth(0, 600);  // Left column wider for genome editor
+    ImGui::SetColumnWidth(1, 500);  // Right column for results
     
     // Left column: Phage Editor
     ImGui::Text("Phage Genome");
@@ -155,7 +159,7 @@ void renderMainWindow() {
                 receptor.getPosition().z);
         }
         
-        if (ImGui::Button("Recalculate Binding")) {
+        if (ImGui::Button("Recalculate Binding", ImVec2(200, 30))) {
             onGenomeChanged();
         }
     } else {
@@ -207,7 +211,6 @@ int main() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    // Removed DockingEnable for compatibility
     
     ImGui::StyleColorsDark();
     
