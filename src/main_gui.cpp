@@ -4,12 +4,11 @@
 #include "biology/AminoAcid.hpp"
 #include "biology/Bacteria.hpp"
 
-// ImGui includes
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
 #include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <random>
 #include <chrono>
@@ -25,6 +24,7 @@ struct AppState {
     float binding_score = 0.0;
     bool show_binding_results = false;
     bool auto_update = true;
+    bool show_help = false;
 };
 
 AppState g_state;
@@ -47,13 +47,45 @@ void onGenomeChanged() {
     }
 }
 
-// Main GUI
+// Render the help window
+void renderHelp() {
+    if (!g_state.show_help) return;
+    
+    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help);
+    ImGui::Text("PhageForge - Phage Design Game");
+    ImGui::Separator();
+    ImGui::Text("How to Play:");
+    ImGui::BulletText("Edit the phage genome codon by codon");
+    ImGui::BulletText("Click on a codon to see amino acid details");
+    ImGui::BulletText("Use mutations to evolve your phage");
+    ImGui::BulletText("Watch the binding score change in real-time");
+    ImGui::Separator();
+    ImGui::Text("Amino Acid Colors:");
+    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "■ Hydrophobic (Yellow)");
+    ImGui::TextColored(ImVec4(0.25f, 0.41f, 0.88f, 1.0f), "■ Positive Charge (Blue)");
+    ImGui::TextColored(ImVec4(0.86f, 0.08f, 0.24f, 1.0f), "■ Negative Charge (Red)");
+    ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "■ Polar (Green)");
+    ImGui::Separator();
+    ImGui::Text("Keys:");
+    ImGui::BulletText("ESC - Exit");
+    ImGui::BulletText("F1 - Toggle Help");
+    ImGui::End();
+}
+
+// Main GUI window
 void renderMainWindow() {
     ImGui::Begin("PhageForge - Main", nullptr, ImGuiWindowFlags_MenuBar);
     
-    // Menu
+    // Menu bar
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Randomize Genome")) {
+                g_state.editor.randomizeGenome();
+            }
+            if (ImGui::MenuItem("Export JSON")) {
+                std::cout << "Exporting genome: " << g_state.phage_genome.toJSON() << std::endl;
+            }
+            ImGui::Separator();
             if (ImGui::MenuItem("Exit")) {
                 glfwSetWindowShouldClose(glfwGetCurrentContext(), true);
             }
@@ -61,6 +93,7 @@ void renderMainWindow() {
         }
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("Auto-Update", nullptr, &g_state.auto_update);
+            ImGui::MenuItem("Help", "F1", &g_state.show_help);
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -112,6 +145,16 @@ void renderMainWindow() {
         ImGui::Text("Population: %.2f", g_state.bacteria.getPopulationDensity());
         ImGui::Text("Receptors: %zu", g_state.bacteria.getReceptors().size());
         
+        // Show receptor details
+        for (const auto& receptor : g_state.bacteria.getReceptors()) {
+            ImGui::Text("  %s: %.2f e at (%.1f, %.1f, %.1f)", 
+                receptor.getType().c_str(),
+                receptor.getCharge(),
+                receptor.getPosition().x,
+                receptor.getPosition().y,
+                receptor.getPosition().z);
+        }
+        
         if (ImGui::Button("Recalculate Binding")) {
             onGenomeChanged();
         }
@@ -149,7 +192,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "PhageForge", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1400, 800, "PhageForge - Phage Design Studio", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create window" << std::endl;
         glfwTerminate();
@@ -190,7 +233,13 @@ int main() {
     r2.setType("OmpF");
     g_state.bacteria.addReceptor(r2);
     
-    g_state.bacteria.setName("E. coli");
+    biology::Receptor r3;
+    r3.setPosition({-0.8, 0.5, 0.0});
+    r3.setCharge(-1.2);
+    r3.setType("LamB");
+    g_state.bacteria.addReceptor(r3);
+    
+    g_state.bacteria.setName("E. coli O157:H7");
     g_state.bacteria.setPopulationDensity(1.0);
     
     // Initial binding calculation
@@ -198,16 +247,29 @@ int main() {
     
     std::cout << "✅ GUI initialized" << std::endl;
     std::cout << "   Press ESC to exit" << std::endl;
+    std::cout << "   Press F1 for help" << std::endl;
     
     // Main loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         
+        // Handle keyboard shortcuts
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            glfwSetWindowShouldClose(window, true);
+        }
+        if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
+            g_state.show_help = !g_state.show_help;
+        }
+        
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
+        // Render main window
         renderMainWindow();
+        
+        // Render help window
+        renderHelp();
         
         ImGui::Render();
         int display_w, display_h;
