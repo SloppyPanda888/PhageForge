@@ -74,9 +74,14 @@ void renderHelp() {
 
 // Main GUI window
 void renderMainWindow() {
-    // Main window with proper size
-    ImGui::SetNextWindowSize(ImVec2(1200, 700), ImGuiCond_FirstUseEver);
-    ImGui::Begin("PhageForge - Main", nullptr, ImGuiWindowFlags_MenuBar);
+    // Main window - locked to full size with no movement
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1400, 800), ImGuiCond_Always);
+    
+    ImGui::Begin("PhageForge - Main", nullptr, 
+        ImGuiWindowFlags_NoMove | 
+        ImGuiWindowFlags_NoResize | 
+        ImGuiWindowFlags_MenuBar);
     
     // Menu bar
     if (ImGui::BeginMenuBar()) {
@@ -101,7 +106,7 @@ void renderMainWindow() {
         ImGui::EndMenuBar();
     }
     
-    // Status bar
+    // Status bar with larger font
     ImGui::Text("Status: %s", g_state.show_binding_results ? "Binding calculated" : "Ready");
     ImGui::SameLine();
     ImGui::Text("| Score: %.1f/100", g_state.binding_score);
@@ -110,8 +115,8 @@ void renderMainWindow() {
     
     // Two-column layout with proper widths
     ImGui::Columns(2, "MainColumns", true);
-    ImGui::SetColumnWidth(0, 600);  // Left column wider for genome editor
-    ImGui::SetColumnWidth(1, 500);  // Right column for results
+    ImGui::SetColumnWidth(0, 650);  // Left column wider for genome editor
+    ImGui::SetColumnWidth(1, 650);  // Right column for results
     
     // Left column: Phage Editor
     ImGui::Text("Phage Genome");
@@ -139,7 +144,7 @@ void renderMainWindow() {
         
         // Progress bar
         float progress = std::min(1.0f, g_state.binding_score / 100.0f);
-        ImGui::ProgressBar(progress, ImVec2(-1, 20), 
+        ImGui::ProgressBar(progress, ImVec2(-1, 25), 
             std::to_string(int(g_state.binding_score)).c_str());
         
         ImGui::Separator();
@@ -159,7 +164,7 @@ void renderMainWindow() {
                 receptor.getPosition().z);
         }
         
-        if (ImGui::Button("Recalculate Binding", ImVec2(200, 30))) {
+        if (ImGui::Button("Recalculate Binding", ImVec2(200, 35))) {
             onGenomeChanged();
         }
     } else {
@@ -196,7 +201,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     
-    GLFWwindow* window = glfwCreateWindow(1400, 800, "PhageForge - Phage Design Studio", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1400, 820, "PhageForge - Phage Design Studio", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create window" << std::endl;
         glfwTerminate();
@@ -206,11 +211,14 @@ int main() {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     
-    // Setup Dear ImGui
+    // Setup Dear ImGui with larger font
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    
+    // Increase font size - makes text more readable
+    ImGui::GetStyle().FontSize = 18.0f;
     
     ImGui::StyleColorsDark();
     
