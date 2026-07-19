@@ -1,6 +1,5 @@
 # PhageForge - Core Library + GUI + 3D Renderer
 
-# --- Core Library ---
 add_library(phageforge_core STATIC
     core/Utilities.cpp
     biology/Codon.cpp
@@ -27,12 +26,10 @@ target_link_libraries(phageforge_core
     ${PLATFORM_LIBS}
 )
 
-# --- GUI Application with 3D Renderer ---
 add_executable(phageforge
     main_gui.cpp
     gui/PhageEditor.cpp
     render/OpenGLRenderer.cpp
-    # ImGui source files
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_draw.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_widgets.cpp
@@ -57,7 +54,6 @@ target_link_libraries(phageforge
     GLEW
 )
 
-# --- CLI Test Harness ---
 add_executable(phageforge_test
     main_cli.cpp
 )
@@ -68,7 +64,6 @@ target_link_libraries(phageforge_test
     ${PLATFORM_LIBS}
 )
 
-# Copy config files
 add_custom_command(
     TARGET phageforge POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
