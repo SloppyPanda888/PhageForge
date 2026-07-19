@@ -35,7 +35,10 @@ public:
     [[nodiscard]] std::string toJSON() const;
     static Genome fromJSON(const std::string& json_str);
     
-    bool operator==(const Genome& other) const noexcept = default;
+    // Equality operator (C++17 compatible)
+    bool operator==(const Genome& other) const noexcept {
+        return m_tail_fiber == other.m_tail_fiber;
+    }
     
 private:
     std::vector<Codon> m_tail_fiber;

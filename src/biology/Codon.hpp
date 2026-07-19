@@ -31,8 +31,12 @@ struct Codon {
     // Check if this is a valid codon (no INVALID bases)
     [[nodiscard]] bool isValid() const noexcept;
     
-    // Equality operator for testing
-    bool operator==(const Codon& other) const noexcept = default;
+    // Equality operator (C++17 compatible)
+    bool operator==(const Codon& other) const noexcept {
+        return bases[0] == other.bases[0] &&
+               bases[1] == other.bases[1] &&
+               bases[2] == other.bases[2];
+    }
 };
 
 // The standard genetic code (codon -> amino acid)
