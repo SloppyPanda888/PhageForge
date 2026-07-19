@@ -47,13 +47,17 @@ void onGenomeChanged() {
     }
 }
 
-// Render the help window
+// Render the help window - stays on top!
 void renderHelp() {
     if (!g_state.show_help) return;
     
     ImGui::SetNextWindowPos(ImVec2(400, 200), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help);
+    ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
+    
+    // This makes the help window stay on top
+    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help, 
+        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking);
+    
     ImGui::Text("PhageForge - Phage Design Game");
     ImGui::Separator();
     ImGui::Text("How to Play:");
@@ -74,7 +78,7 @@ void renderHelp() {
     ImGui::End();
 }
 
-// Main GUI window - fills entire screen
+// Main GUI window - fills entire screen, stays in background
 void renderMainWindow() {
     // Get the current window size and set main window to fill it
     GLFWwindow* window = glfwGetCurrentContext();
@@ -89,6 +93,7 @@ void renderMainWindow() {
         ImGuiWindowFlags_NoMove | 
         ImGuiWindowFlags_NoResize | 
         ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoBringToFrontOnFocus |  // Keeps it in background!
         ImGuiWindowFlags_MenuBar);
     
     // Menu bar
@@ -114,7 +119,7 @@ void renderMainWindow() {
         ImGui::EndMenuBar();
     }
     
-    // Status bar
+    // Status bar with larger text
     ImGui::Text("Status: %s", g_state.show_binding_results ? "Binding calculated" : "Ready");
     ImGui::SameLine();
     ImGui::Text("| Score: %.1f/100", g_state.binding_score);
@@ -157,7 +162,7 @@ void renderMainWindow() {
         
         // Progress bar
         float progress = std::min(1.0f, g_state.binding_score / 100.0f);
-        ImGui::ProgressBar(progress, ImVec2(-1, 30), 
+        ImGui::ProgressBar(progress, ImVec2(-1, 35), 
             std::to_string(int(g_state.binding_score)).c_str());
         
         ImGui::Separator();
@@ -177,7 +182,7 @@ void renderMainWindow() {
                 receptor.getPosition().z);
         }
         
-        if (ImGui::Button("Recalculate Binding", ImVec2(-1, 40))) {
+        if (ImGui::Button("Recalculate Binding", ImVec2(-1, 45))) {
             onGenomeChanged();
         }
     } else {
@@ -240,20 +245,23 @@ int main() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
     
-    // --- SET FONT SIZE ---
-    // Scale the default font to be larger
-    io.FontGlobalScale = 1.8f;  // 1.0 = normal, 1.8 = 80% larger
+    // --- EVEN BIGGER FONT! ---
+    io.FontGlobalScale = 2.2f;  // 120% larger (was 1.8)
     
-    // Increase UI element sizes
-    ImGui::GetStyle().FramePadding = ImVec2(10, 10);
-    ImGui::GetStyle().ItemSpacing = ImVec2(12, 12);
-    ImGui::GetStyle().ItemInnerSpacing = ImVec2(10, 10);
-    ImGui::GetStyle().WindowPadding = ImVec2(20, 20);
+    // Increase UI element sizes even more
+    ImGui::GetStyle().FramePadding = ImVec2(12, 12);
+    ImGui::GetStyle().ItemSpacing = ImVec2(14, 14);
+    ImGui::GetStyle().ItemInnerSpacing = ImVec2(12, 12);
+    ImGui::GetStyle().WindowPadding = ImVec2(25, 25);
     ImGui::GetStyle().WindowRounding = 5.0f;
-    ImGui::GetStyle().FrameRounding = 4.0f;
-    ImGui::GetStyle().ScrollbarSize = 20.0f;
-    ImGui::GetStyle().GrabMinSize = 15.0f;
+    ImGui::GetStyle().FrameRounding = 5.0f;
+    ImGui::GetStyle().ScrollbarSize = 25.0f;
+    ImGui::GetStyle().GrabMinSize = 20.0f;
+    
+    // Make text even bigger in specific places
+    ImGui::GetStyle().WindowTitleAlign = ImVec2(0.5f, 0.5f);
     
     ImGui::StyleColorsDark();
     
@@ -295,7 +303,7 @@ int main() {
     std::cout << "✅ GUI initialized" << std::endl;
     std::cout << "   Press ESC to exit" << std::endl;
     std::cout << "   Press F1 for help" << std::endl;
-    std::cout << "   Font scale: 1.8x (large text)" << std::endl;
+    std::cout << "   Font scale: 2.2x (very large text)" << std::endl;
     std::cout << "   Window size: " << window_width << "x" << window_height << std::endl;
     
     // Main loop
@@ -314,10 +322,10 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         
-        // Render main window
+        // Render main window first (background)
         renderMainWindow();
         
-        // Render help window
+        // Render help window on top (foreground)
         renderHelp();
         
         ImGui::Render();
