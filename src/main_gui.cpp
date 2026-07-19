@@ -51,13 +51,13 @@ void onGenomeChanged() {
 void renderHelp() {
     if (!g_state.show_help) return;
     
+    // Position and size the help window
     ImGui::SetNextWindowPos(ImVec2(400, 200), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
     
-    // This makes the help window stay on top
-    if (ImGui::Begin("Help - PhageForge Guide", &g_state.show_help, 
-        ImGuiWindowFlags_Tooltip | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGUiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking
-    )
+    // Flags: no docking, auto resize, no collapse
+    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help, 
+        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
     
     ImGui::Text("PhageForge - Phage Design Game");
     ImGui::Separator();
@@ -90,11 +90,12 @@ void renderMainWindow() {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2((float)display_w, (float)display_h), ImGuiCond_Always);
     
+    // Flags: no move, no resize, no collapse, and **no bring to front on focus**
     ImGui::Begin("PhageForge - Main", nullptr, 
         ImGuiWindowFlags_NoMove | 
         ImGuiWindowFlags_NoResize | 
         ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoBringToFrontOnFocus |  // Keeps it in background!
+        ImGuiWindowFlags_NoBringToFrontOnFocus |  // This keeps it behind popups!
         ImGuiWindowFlags_MenuBar);
     
     // Menu bar
@@ -249,7 +250,7 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
     
     // --- EVEN BIGGER FONT! ---
-    io.FontGlobalScale = 2.6f;  // 120% larger (was 1.8)
+    io.FontGlobalScale = 3.0f;  
     
     // Increase UI element sizes even more
     ImGui::GetStyle().FramePadding = ImVec2(12, 12);
@@ -260,9 +261,6 @@ int main() {
     ImGui::GetStyle().FrameRounding = 5.0f;
     ImGui::GetStyle().ScrollbarSize = 25.0f;
     ImGui::GetStyle().GrabMinSize = 20.0f;
-    
-    // Make text even bigger in specific places
-    ImGui::GetStyle().WindowTitleAlign = ImVec2(0.5f, 0.5f);
     
     ImGui::StyleColorsDark();
     
