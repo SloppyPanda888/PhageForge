@@ -30,6 +30,9 @@ find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 
+# GLM for 3D rendering
+find_package(glm REQUIRED)
+
 # Boost
 find_package(Boost 1.74 REQUIRED COMPONENTS serialization)
 
@@ -38,13 +41,14 @@ add_subdirectory(tests)
 
 enable_testing()
 
-# ImGui include directories
+# Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui/backends
     ${Boost_INCLUDE_DIRS}
     ${OPENGL_INCLUDE_DIRS}
+    ${GLM_INCLUDE_DIRS}
 )
 
 message(STATUS "PhageForge Configuration:")
