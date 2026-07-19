@@ -248,7 +248,7 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
     
     // --- EVEN BIGGER FONT! ---
-    io.FontGlobalScale = 2.2f;  // 120% larger (was 1.8)
+    io.FontGlobalScale = 2.6f;  // 120% larger (was 1.8)
     
     // Increase UI element sizes even more
     ImGui::GetStyle().FramePadding = ImVec2(12, 12);
