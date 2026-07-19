@@ -1,4 +1,4 @@
-# PhageForge - Core Library + GUI
+# PhageForge - Core Library + GUI + 3D Renderer
 
 # --- Core Library ---
 add_library(phageforge_core STATIC
@@ -27,10 +27,11 @@ target_link_libraries(phageforge_core
     ${PLATFORM_LIBS}
 )
 
-# --- GUI Application ---
+# --- GUI Application with 3D Renderer ---
 add_executable(phageforge
     main_gui.cpp
     gui/PhageEditor.cpp
+    render/OpenGLRenderer.cpp
     # ImGui source files
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../extern/imgui/imgui_draw.cpp
@@ -88,4 +89,4 @@ set_target_properties(phageforge phageforge_test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
-message(STATUS "Building: phageforge (GUI) and phageforge_test (CLI)")
+message(STATUS "Building: phageforge (GUI+3D) and phageforge_test (CLI)")
