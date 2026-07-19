@@ -2,17 +2,14 @@ cmake_minimum_required(VERSION 3.10)
 
 project(PhageForge VERSION 0.1.0 LANGUAGES CXX)
 
-# Use C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Debug mode for lower memory usage
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g0")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
-# Platform-specific libraries
 if(APPLE)
     set(PLATFORM_LIBS "-framework Accelerate -framework OpenGL")
 elseif(UNIX)
@@ -25,15 +22,11 @@ elseif(UNIX)
     set(PLATFORM_LIBS "${PLATFORM_LIBS} -lGL -lGLU")
 endif()
 
-# GUI Libraries
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
-
-# GLM for 3D rendering
 find_package(glm REQUIRED)
 
-# Boost
 find_package(Boost 1.74 REQUIRED COMPONENTS serialization)
 
 add_subdirectory(src)
@@ -41,7 +34,6 @@ add_subdirectory(tests)
 
 enable_testing()
 
-# Include directories
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/extern/imgui
