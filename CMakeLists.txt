@@ -49,7 +49,7 @@ message(STATUS "  Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Platform: ${CMAKE_SYSTEM_NAME}")
 message(STATUS "  Boost: ${Boost_INCLUDE_DIRS}")
 message(STATUS "  OpenGL: ${OPENGL_INCLUDE_DIRS}")
-=======
+
 cmake_minimum_required(VERSION 3.10)
 
 project(PhageForge VERSION 0.1.0 LANGUAGES CXX)
