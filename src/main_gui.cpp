@@ -55,7 +55,7 @@ void renderHelp() {
     ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
     
     // This makes the help window stay on top
-    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help, 
+    ImGui::BeginTooltip("Help - PhageForge Guide", &g_state.show_help, 
         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDocking);
     
     ImGui::Text("PhageForge - Phage Design Game");
