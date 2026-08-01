@@ -1,414 +1,302 @@
-#include "gui/PhageEditor.hpp"
-#include "physics/Electrostatics.hpp"
-#include "physics/BindingAssay.hpp"
-#include "biology/AminoAcid.hpp"
-#include "biology/Bacteria.hpp"
-#include "render/OpenGLRenderer.hpp"
+#include "PhageEditor.hpp"
+#include "../physics/Electrostatics.hpp"
+#include "../biology/AminoAcid.hpp"
+#include "../core/Utilities.hpp"
 
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-#include <GLFW/glfw3.h>
-
-#include <iostream>
 #include <random>
 #include <chrono>
+#include <map>
+#include <cstdio>
 
-using namespace phageforge;
+namespace phageforge::gui {
 
-// Global state
-struct AppState {
-    biology::Genome phage_genome;
-    biology::BacterialStrain bacteria;
-    gui::PhageEditor editor;
-    render::OpenGLRenderer renderer;
-    double binding_energy = 0.0;
-    float binding_score = 0.0;
-    bool show_binding_results = false;
-    bool auto_update = true;
-    bool show_help = false;
-    bool show_3d = true;
-};
-
-AppState g_state;
-
-// GLFW error callback
-void glfw_error_callback(int error, const char* description) {
-    std::cerr << "GLFW Error " << error << ": " << description << std::endl;
-}
-
-// Update binding when genome changes
-void onGenomeChanged() {
-    if (g_state.auto_update) {
-        physics::ElectrostaticsSolver solver;
-        g_state.binding_energy = solver.computeBindingEnergy(
-            g_state.phage_genome, 
-            g_state.bacteria
-        );
-        g_state.binding_score = physics::BindingAssay::scoreBinding(g_state.binding_energy);
-        g_state.show_binding_results = true;
-        
-        // Update 3D renderer
-        g_state.renderer.updatePhage(g_state.phage_genome);
-        g_state.renderer.updateBacteria(g_state.bacteria);
-        g_state.renderer.updateBindingEnergy(g_state.binding_energy);
+static ImVec4 hexToImVec4(const char* hex) {
+    if (hex[0] == '#') {
+        unsigned int r, g, b;
+        sscanf(hex + 1, "%02x%02x%02x", &r, &g, &b);
+        return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
     }
+    return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
-// Render the help window
-void renderHelp() {
-    if (!g_state.show_help) return;
-    
-    ImGui::SetNextWindowPos(ImVec2(400, 200), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
-    
-    ImGui::Begin("Help - PhageForge Guide", &g_state.show_help, 
-        ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse);
-    
-    ImGui::Text("PhageForge - Phage Design Game");
-    ImGui::Separator();
-    ImGui::Text("How to Play:");
-    ImGui::BulletText("Edit the phage genome codon by codon");
-    ImGui::BulletText("Click on a codon to see amino acid details");
-    ImGui::BulletText("Use mutations to evolve your phage");
-    ImGui::BulletText("Watch the binding score change in real-time");
-    ImGui::Separator();
-    ImGui::Text("3D Controls:");
-    ImGui::BulletText("Left-click + drag: Rotate view");
-    ImGui::BulletText("Scroll: Zoom in/out");
-    ImGui::BulletText("Right-click + drag: Pan");
-    ImGui::Separator();
-    ImGui::Text("Amino Acid Colors:");
-    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "■ Hydrophobic (Yellow)");
-    ImGui::TextColored(ImVec4(0.25f, 0.41f, 0.88f, 1.0f), "■ Positive Charge (Blue)");
-    ImGui::TextColored(ImVec4(0.86f, 0.08f, 0.24f, 1.0f), "■ Negative Charge (Red)");
-    ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "■ Polar (Green)");
-    ImGui::Separator();
-    ImGui::Text("Keys:");
-    ImGui::BulletText("ESC - Exit");
-    ImGui::BulletText("F1 - Toggle Help");
-    ImGui::End();
+PhageEditor::PhageEditor() {
+    randomizeGenome();
 }
 
-// Render 3D viewport
-void render3DViewport() {
-    if (!g_state.show_3d) return;
-    
-    // Get the current window size
-    GLFWwindow* window = glfwGetCurrentContext();
-    int display_w, display_h;
-    glfwGetWindowSize(window, &display_w, &display_h);
-    
-    // Create a child window for the 3D viewport
-    ImGui::Begin("3D View", &g_state.show_3d, ImGuiWindowFlags_NoScrollbar);
-    
-    // Get the size of the ImGui window
-    ImVec2 viewport_size = ImGui::GetContentRegionAvail();
-    
-    if (viewport_size.x > 0 && viewport_size.y > 0) {
-        // Update the renderer with the new size
-        g_state.renderer.resize((int)viewport_size.x, (int)viewport_size.y);
-        
-        // Get the draw position for the viewport
-        ImVec2 viewport_pos = ImGui::GetCursorScreenPos();
-        
-        // Create a texture ID for the renderer output
-        // Note: For now, we just call render directly in the ImGui window
-        // In a full implementation, you'd render to a framebuffer
-        
-        // Draw a placeholder showing the 3D renderer is active
-        ImGui::Text("3D Viewport Active");
-        ImGui::Text("Phage: %zu amino acids", g_state.phage_genome.translateTailFiber().size());
-        ImGui::Text("Receptors: %zu", g_state.bacteria.getReceptors().size());
-        ImGui::Text("Binding: %.2f kJ/mol", g_state.binding_energy);
-        
-        // Add camera controls
-        ImGui::Separator();
-        if (ImGui::Button("Reset Camera")) {
-            g_state.renderer.resetCamera();
-        }
-        
-        // Instructions
-        ImGui::TextDisabled("Drag to rotate | Scroll to zoom");
-    } else {
-        ImGui::Text("Resize window to see 3D view");
-    }
-    
-    ImGui::End();
+void PhageEditor::setGenome(const biology::Genome& genome) {
+    m_genome = genome;
 }
 
-// Main GUI window
-void renderMainWindow() {
-    GLFWwindow* window = glfwGetCurrentContext();
-    int display_w, display_h;
-    glfwGetWindowSize(window, &display_w, &display_h);
+void PhageEditor::render() {
+    ImGui::Begin("Phage Genome Editor", nullptr, ImGuiWindowFlags_MenuBar);
     
-    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2((float)display_w, (float)display_h), ImGuiCond_Always);
-    
-    ImGui::Begin("PhageForge - Main", nullptr, 
-        ImGuiWindowFlags_NoMove | 
-        ImGuiWindowFlags_NoResize | 
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoBringToFrontOnFocus |
-        ImGuiWindowFlags_MenuBar);
-    
-    // Menu bar
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Randomize Genome")) {
-                g_state.editor.randomizeGenome();
-            }
-            if (ImGui::MenuItem("Export JSON")) {
-                std::cout << "Exporting genome: " << g_state.phage_genome.toJSON() << std::endl;
-            }
+            if (ImGui::MenuItem("Randomize")) randomizeGenome();
+            if (ImGui::MenuItem("Clear")) clearGenome();
             ImGui::Separator();
-            if (ImGui::MenuItem("Exit")) {
-                glfwSetWindowShouldClose(glfwGetCurrentContext(), true);
+            if (ImGui::MenuItem("Export JSON")) {
+                if (m_on_save) m_on_save(m_genome);
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("View")) {
-            ImGui::MenuItem("Auto-Update", nullptr, &g_state.auto_update);
-            ImGui::MenuItem("3D View", nullptr, &g_state.show_3d);
-            ImGui::MenuItem("Help", "F1", &g_state.show_help);
+        if (ImGui::BeginMenu("Edit")) {
+            if (ImGui::MenuItem("Add Random Mutation")) addRandomMutation();
+            if (ImGui::MenuItem("Show Codon Table")) m_show_codon_table = !m_show_codon_table;
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
     }
     
-    // Status bar
-    ImGui::Text("Status: %s", g_state.show_binding_results ? "Binding calculated" : "Ready");
-    ImGui::SameLine();
-    ImGui::Text("| Score: %.1f/100", g_state.binding_score);
+    // Genome info
+    ImGui::Text("Genome: %s", m_genome_name.c_str());
+    ImGui::Text("Length: %zu codons (%zu amino acids)", 
+                m_genome.size(), 
+                m_genome.translateTailFiber().size());
     
+    // DNA sequence - show full sequence
     ImGui::Separator();
-    
-    // Calculate column widths
-    float col_width = (display_w - 20) / 2;
-    
-    // Three-column layout: Editor | 3D View | Results
-    ImGui::Columns(3, "MainColumns", true);
-    ImGui::SetColumnWidth(0, col_width * 0.6);
-    ImGui::SetColumnWidth(1, col_width);
-    ImGui::SetColumnWidth(2, col_width * 0.6);
-    
-    // Column 1: Phage Editor
-    ImGui::Text("Phage Genome");
-    ImGui::Separator();
-    g_state.editor.render();
-    
-    ImGui::NextColumn();
-    
-    // Column 2: 3D Viewport
-    ImGui::Text("3D Visualization");
-    ImGui::Separator();
-    if (g_state.show_3d) {
-        render3DViewport();
+    ImGui::Text("DNA Sequence:");
+    std::string dna = m_genome.getDNASequence();
+    if (dna.length() > 60) {
+        for (size_t i = 0; i < dna.length(); i += 60) {
+            size_t len = std::min(size_t(60), dna.length() - i);
+            ImGui::Text("%s", dna.substr(i, len).c_str());
+        }
     } else {
-        ImGui::Text("3D View disabled (enable in View menu)");
+        ImGui::Text("%s", dna.c_str());
     }
     
-    ImGui::NextColumn();
+    ImGui::Separator();
+    drawCodonEditor();
+    ImGui::Separator();
+    drawAminoAcidInfo();
+    ImGui::Separator();
+    drawMutationControls();
+    drawGenomeStats();
     
-    // Column 3: Results
-    ImGui::Text("Binding Results");
+    ImGui::End();
+    
+    if (m_show_codon_table) {
+        drawCodonTable();
+    }
+}
+
+void PhageEditor::drawCodonEditor() {
+    ImGui::Text("Codon Editor (click to select):");
+    
+    // Make the list taller
+    ImGui::BeginChild("CodonList", ImVec2(0, 250), true);
+    
+    auto aa_sequence = m_genome.translateTailFiber();
+    
+    // Use columns for better layout - 4 items per row
+    int items_per_row = 4;
+    int count = 0;
+    
+    for (size_t i = 0; i < m_genome.size() && i < 50; ++i) {
+        ImGui::PushID(static_cast<int>(i));
+        
+        // Start a new row
+        if (count % items_per_row != 0) {
+            ImGui::SameLine();
+        }
+        
+        // Codon string
+        std::string codon_str = m_genome.getTailFiberCodons()[i].toString();
+        
+        // Amino acid
+        std::string aa_str = "STOP";
+        ImVec4 color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+        if (i < aa_sequence.size() && aa_sequence[i] != core::AminoAcidCode::STOP) {
+            auto aa = aa_sequence[i];
+            try {
+                auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
+                aa_str = props.one_letter;
+                color = hexToImVec4(getAminoColor(aa));
+            } catch (...) {
+                aa_str = "?";
+            }
+        }
+        
+        // Selectable button with codon and amino acid
+        bool selected = (m_selected_codon == static_cast<int>(i));
+        
+        // Make button with enough width to show codon
+        ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
+        if (ImGui::Button(codon_str.c_str(), ImVec2(70, 30))) {
+            m_selected_codon = selected ? -1 : static_cast<int>(i);
+        }
+        ImGui::PopStyleColor();
+        
+        // Show amino acid on the button
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Position %zu\nCodon: %s\nAmino Acid: %s", 
+                i, codon_str.c_str(), aa_str.c_str());
+        }
+        
+        ImGui::PopID();
+        count++;
+    }
+    
+    ImGui::EndChild();
+}
+
+void PhageEditor::drawAminoAcidInfo() {
+    if (m_selected_codon < 0 || m_selected_codon >= static_cast<int>(m_genome.size())) {
+        ImGui::Text("Select a codon to view details");
+        return;
+    }
+    
+    auto codon = m_genome.getTailFiberCodons()[m_selected_codon];
+    auto aa = codon.translate();
+    
+    ImGui::Text("Selected Codon: %s", codon.toString().c_str());
+    ImGui::Text("Amino Acid: %s", core::aminoAcidToString(aa).c_str());
+    
+    if (aa != core::AminoAcidCode::STOP) {
+        try {
+            auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
+            ImGui::Text("Charge: %.2f e", props.net_charge_at_ph7);
+            ImGui::Text("Hydrophobicity: %.2f", props.hydrophobicity);
+            ImGui::Text("Mol Weight: %.1f Da", props.molecular_weight);
+        } catch (const std::exception&) {
+            ImGui::Text("Properties not available");
+        }
+    }
+}
+
+void PhageEditor::drawMutationControls() {
+    ImGui::Text("Mutations:");
+    
+    if (ImGui::Button("Randomize")) randomizeGenome();
+    ImGui::SameLine();
+    if (ImGui::Button("+1")) addRandomMutation();
+    ImGui::SameLine();
+    if (ImGui::Button("+5")) {
+        for (int i = 0; i < 5; ++i) addRandomMutation();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Clear")) clearGenome();
+}
+
+void PhageEditor::drawGenomeStats() {
+    auto aa_sequence = m_genome.translateTailFiber();
+    double total_charge = 0.0;
+    int valid_aa = 0;
+    
+    std::map<char, int> aa_counts;
+    
+    for (auto aa : aa_sequence) {
+        if (aa != core::AminoAcidCode::STOP) {
+            try {
+                auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
+                total_charge += props.net_charge_at_ph7;
+                aa_counts[props.one_letter[0]]++;
+                valid_aa++;
+            } catch (...) {}
+        }
+    }
+    
+    ImGui::Text("Total Charge: %.2f e", total_charge);
+    ImGui::Text("Avg Charge: %.2f e", valid_aa > 0 ? total_charge / valid_aa : 0.0);
+    ImGui::Text("Amino Acids: %d", valid_aa);
+}
+
+void PhageEditor::drawCodonTable() {
+    ImGui::Begin("Codon Table", &m_show_codon_table, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("Standard Genetic Code");
     ImGui::Separator();
     
-    if (g_state.show_binding_results) {
-        ImGui::Text("Binding Energy: %.2f kJ/mol", g_state.binding_energy);
-        ImGui::Text("Binding Score: %.1f/100", g_state.binding_score);
-        
-        std::string desc = physics::BindingAssay::getBindingDescription(g_state.binding_energy);
-        ImGui::Text("Description: %s", desc.c_str());
-        
-        double prob = physics::BindingAssay::infectionProbability(g_state.binding_energy);
-        ImGui::Text("Infection Probability: %.1f%%", prob * 100.0);
-        
-        bool can_infect = physics::BindingAssay::isInfection(g_state.binding_energy);
-        ImGui::Text("Infection: %s", can_infect ? "✅ Possible" : "❌ Not Possible");
-        
-        float progress = std::min(1.0f, g_state.binding_score / 100.0f);
-        ImGui::ProgressBar(progress, ImVec2(-1, 30), 
-            std::to_string(int(g_state.binding_score)).c_str());
-        
-        ImGui::Separator();
-        
-        ImGui::Text("Bacteria: %s", g_state.bacteria.getName().c_str());
-        ImGui::Text("Population: %.2f", g_state.bacteria.getPopulationDensity());
-        ImGui::Text("Receptors: %zu", g_state.bacteria.getReceptors().size());
-        
-        for (const auto& receptor : g_state.bacteria.getReceptors()) {
-            ImGui::Text("  %s: %.2f e at (%.1f, %.1f, %.1f)", 
-                receptor.getType().c_str(),
-                receptor.getCharge(),
-                receptor.getPosition().x,
-                receptor.getPosition().y,
-                receptor.getPosition().z);
+    const char* codons[4][4][4] = {
+        {{"TTT F", "TCT S", "TAT Y", "TGT C"},
+         {"TTC F", "TCC S", "TAC Y", "TGC C"},
+         {"TTA L", "TCA S", "TAA STOP", "TGA STOP"},
+         {"TTG L", "TCG S", "TAG STOP", "TGG W"}},
+        {{"CTT L", "CCT P", "CAT H", "CGT R"},
+         {"CTC L", "CCC P", "CAC H", "CGC R"},
+         {"CTA L", "CCA P", "CAA Q", "CGA R"},
+         {"CTG L", "CCG P", "CAG Q", "CGG R"}},
+        {{"ATT I", "ACT T", "AAT N", "AGT S"},
+         {"ATC I", "ACC T", "AAC N", "AGC S"},
+         {"ATA I", "ACA T", "AAA K", "AGA R"},
+         {"ATG M", "ACG T", "AAG K", "AGG R"}},
+        {{"GTT V", "GCT A", "GAT D", "GGT G"},
+         {"GTC V", "GCC A", "GAC D", "GGC G"},
+         {"GTA V", "GCA A", "GAA E", "GGA G"},
+         {"GTG V", "GCG A", "GAG E", "GGG G"}}
+    };
+    
+    const char* bases[4] = {"T", "C", "A", "G"};
+    
+    ImGui::Columns(5);
+    ImGui::Text(""); ImGui::NextColumn();
+    ImGui::Text("T"); ImGui::NextColumn();
+    ImGui::Text("C"); ImGui::NextColumn();
+    ImGui::Text("A"); ImGui::NextColumn();
+    ImGui::Text("G"); ImGui::NextColumn();
+    
+    for (int i = 0; i < 4; ++i) {
+        ImGui::Text("%s", bases[i]); ImGui::NextColumn();
+        for (int j = 0; j < 4; ++j) {
+            ImGui::Text("%s", codons[i][j][0]); ImGui::NextColumn();
         }
-        
-        if (ImGui::Button("Recalculate Binding", ImVec2(-1, 40))) {
-            onGenomeChanged();
-        }
-    } else {
-        ImGui::Text("Click 'Recalculate' or enable Auto-Update");
     }
     
     ImGui::Columns(1);
     ImGui::End();
 }
 
-int main() {
-    std::cout << "=== PhageForge - GUI Version with 3D ===" << std::endl;
-    std::cout << "Loading..." << std::endl;
-    
-    try {
-        biology::AminoAcidPropertiesManager::instance().loadFromTOML("config/amino_acids.toml");
-        std::cout << "✅ Amino acid properties loaded" << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "❌ Failed to load: " << e.what() << std::endl;
-        return 1;
+const char* PhageEditor::getAminoColor(core::AminoAcidCode aa) {
+    switch(aa) {
+        case core::AminoAcidCode::ALA:
+        case core::AminoAcidCode::VAL:
+        case core::AminoAcidCode::LEU:
+        case core::AminoAcidCode::ILE:
+        case core::AminoAcidCode::MET:
+        case core::AminoAcidCode::PHE:
+        case core::AminoAcidCode::TRP:
+        case core::AminoAcidCode::PRO:
+            return "#FFD700";
+        case core::AminoAcidCode::LYS:
+        case core::AminoAcidCode::ARG:
+            return "#4169E1";
+        case core::AminoAcidCode::ASP:
+        case core::AminoAcidCode::GLU:
+            return "#DC143C";
+        case core::AminoAcidCode::SER:
+        case core::AminoAcidCode::THR:
+        case core::AminoAcidCode::TYR:
+        case core::AminoAcidCode::ASN:
+        case core::AminoAcidCode::GLN:
+            return "#32CD32";
+        case core::AminoAcidCode::CYS:
+            return "#FF8C00";
+        case core::AminoAcidCode::GLY:
+            return "#D3D3D3";
+        case core::AminoAcidCode::HIS:
+            return "#8A2BE2";
+        default:
+            return "#FFFFFF";
     }
-    
-    // Setup GLFW
-    glfwSetErrorCallback(glfw_error_callback);
-    if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        return 1;
-    }
-    
-    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-    const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    
-    int window_width = mode->width * 0.9;
-    int window_height = mode->height * 0.9;
-    int window_x = (mode->width - window_width) / 2;
-    int window_y = (mode->height - window_height) / 2;
-    
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    
-    GLFWwindow* window = glfwCreateWindow(window_width, window_height, 
-        "PhageForge - Phage Design Studio (3D)", nullptr, nullptr);
-    if (!window) {
-        std::cerr << "Failed to create window" << std::endl;
-        glfwTerminate();
-        return 1;
-    }
-    
-    glfwSetWindowPos(window, window_x, window_y);
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);
-    
-    // Initialize 3D renderer
-    if (!g_state.renderer.init(window_width, window_height)) {
-        std::cerr << "Failed to initialize 3D renderer" << std::endl;
-        return 1;
-    }
-    g_state.renderer.resetCamera();
-    
-    // Setup Dear ImGui
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
-    
-    io.FontGlobalScale = 2.3f;
-    
-    ImGui::GetStyle().FramePadding = ImVec2(10, 10);
-    ImGui::GetStyle().ItemSpacing = ImVec2(12, 12);
-    ImGui::GetStyle().ItemInnerSpacing = ImVec2(10, 10);
-    ImGui::GetStyle().WindowPadding = ImVec2(20, 20);
-    ImGui::GetStyle().ScrollbarSize = 20.0f;
-    ImGui::GetStyle().GrabMinSize = 15.0f;
-    
-    ImGui::StyleColorsDark();
-    
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 150");
-    
-    // Initialize state
-    std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
-    g_state.phage_genome = biology::GenomeFactory::createRandom(rng, 20);
-    g_state.editor.setGenome(g_state.phage_genome);
-    g_state.editor.setOnMutation(onGenomeChanged);
-    
-    // Bacteria
-    biology::Receptor r1;
-    r1.setPosition({0.0, 0.0, 0.0});
-    r1.setCharge(-1.5);
-    r1.setType("LPS");
-    g_state.bacteria.addReceptor(r1);
-    
-    biology::Receptor r2;
-    r2.setPosition({1.0, 0.8, 0.0});
-    r2.setCharge(-0.8);
-    r2.setType("OmpF");
-    g_state.bacteria.addReceptor(r2);
-    
-    biology::Receptor r3;
-    r3.setPosition({-0.8, 0.5, 0.0});
-    r3.setCharge(-1.2);
-    r3.setType("LamB");
-    g_state.bacteria.addReceptor(r3);
-    
-    g_state.bacteria.setName("E. coli O157:H7");
-    g_state.bacteria.setPopulationDensity(1.0);
-    
-    // Initial update
-    onGenomeChanged();
-    
-    std::cout << "✅ GUI initialized" << std::endl;
-    std::cout << "   Press ESC to exit" << std::endl;
-    std::cout << "   Press F1 for help" << std::endl;
-    std::cout << "   Window size: " << window_width << "x" << window_height << std::endl;
-    
-    // Main loop
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-        
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, true);
-        }
-        if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {
-            g_state.show_help = !g_state.show_help;
-        }
-        
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        
-        renderMainWindow();
-        renderHelp();
-        
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0.1f, 0.1f, 0.12f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        // Render the 3D scene in the background
-        g_state.renderer.render();
-        
-        // Render ImGui on top
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        
-        glfwSwapBuffers(window);
-    }
-    
-    // Cleanup
-    g_state.renderer.cleanup();
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    
-    std::cout << "=== Phase 5 Complete ===" << std::endl;
-    
-    return 0;
 }
+
+void PhageEditor::randomizeGenome() {
+    std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+    m_genome = biology::GenomeFactory::createRandom(rng, 20);
+    if (m_on_mutation) m_on_mutation();
+}
+
+void PhageEditor::addRandomMutation() {
+    std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+    m_genome.mutateRandom(1, rng);
+    if (m_on_mutation) m_on_mutation();
+}
+
+void PhageEditor::clearGenome() {
+    m_genome = biology::Genome();
+    if (m_on_mutation) m_on_mutation();
+}
+
+} // namespace phageforge::gui
