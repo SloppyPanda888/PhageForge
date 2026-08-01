@@ -11,7 +11,6 @@
 
 namespace phageforge::gui {
 
-// Helper function to convert hex color to ImVec4 (only in cpp)
 static ImVec4 hexToImVec4(const char* hex) {
     if (hex[0] == '#') {
         unsigned int r, g, b;
@@ -32,15 +31,10 @@ void PhageEditor::setGenome(const biology::Genome& genome) {
 void PhageEditor::render() {
     ImGui::Begin("Phage Genome Editor", nullptr, ImGuiWindowFlags_MenuBar);
     
-    // Menu bar
     if (ImGui::BeginMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            if (ImGui::MenuItem("Randomize")) {
-                randomizeGenome();
-            }
-            if (ImGui::MenuItem("Clear")) {
-                clearGenome();
-            }
+            if (ImGui::MenuItem("Randomize")) randomizeGenome();
+            if (ImGui::MenuItem("Clear")) clearGenome();
             ImGui::Separator();
             if (ImGui::MenuItem("Export JSON")) {
                 if (m_on_save) m_on_save(m_genome);
@@ -48,12 +42,8 @@ void PhageEditor::render() {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Edit")) {
-            if (ImGui::MenuItem("Add Random Mutation")) {
-                addRandomMutation();
-            }
-            if (ImGui::MenuItem("Show Codon Table")) {
-                m_show_codon_table = !m_show_codon_table;
-            }
+            if (ImGui::MenuItem("Add Random Mutation")) addRandomMutation();
+            if (ImGui::MenuItem("Show Codon Table")) m_show_codon_table = !m_show_codon_table;
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -88,27 +78,35 @@ void PhageEditor::render() {
     
     ImGui::End();
     
-    // Codon table popup
     if (m_show_codon_table) {
         drawCodonTable();
     }
 }
 
 void PhageEditor::drawCodonEditor() {
-    ImGui::Text("Codon Editor:");
-    ImGui::BeginChild("CodonList", ImVec2(0, 200), true);
+    ImGui::Text("Codon Editor (click codon to select):");
+    
+    ImGui::BeginChild("CodonList", ImVec2(0, 280), true);
     
     auto aa_sequence = m_genome.translateTailFiber();
+    
+    // Display as a grid with clear labels
+    int items_per_row = 5;
+    int count = 0;
     
     for (size_t i = 0; i < m_genome.size() && i < 50; ++i) {
         ImGui::PushID(static_cast<int>(i));
         
-        // Codon
-        std::string codon_str = m_genome.getTailFiberCodons()[i].toString();
+        if (count % items_per_row != 0) {
+            ImGui::SameLine();
+        }
         
-        // Amino acid
+        auto codon = m_genome.getTailFiberCodons()[i];
+        std::string codon_str = codon.toString();
+        
+        // Get amino acid letter
         std::string aa_str = "STOP";
-        ImVec4 color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+        ImVec4 color = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
         if (i < aa_sequence.size() && aa_sequence[i] != core::AminoAcidCode::STOP) {
             auto aa = aa_sequence[i];
             try {
@@ -120,23 +118,34 @@ void PhageEditor::drawCodonEditor() {
             }
         }
         
-        // Selectable codon with color
         bool selected = (m_selected_codon == static_cast<int>(i));
-        ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-        if (ImGui::Button(codon_str.c_str(), ImVec2(50, 25))) {
+        
+        // Bigger button with white text for visibility
+        ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.25f, 0.25f, 0.30f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f)); // White text
+        
+        if (ImGui::Button(codon_str.c_str(), ImVec2(85, 35))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
-        ImGui::PopStyleColor();
         
-        ImGui::SameLine();
-        ImGui::Text("→");
-        ImGui::SameLine();
+        ImGui::PopStyleColor(3);
         
+        // Show amino acid letter on the button with color
+        ImGui::SameLine(0, 2);
         ImGui::TextColored(color, "%s", aa_str.c_str());
-        ImGui::SameLine();
+        ImGui::SameLine(0, 2);
         ImGui::TextDisabled("#%zu", i);
         
+        if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Position %zu\nCodon: %s\nAmino Acid: %s\nCharge: %.2f", 
+                i, codon_str.c_str(), aa_str.c_str(),
+                (i < aa_sequence.size() && aa_sequence[i] != core::AminoAcidCode::STOP) ?
+                    biology::AminoAcidPropertiesManager::instance().getProperties(aa_sequence[i]).net_charge_at_ph7 : 0.0);
+        }
+        
         ImGui::PopID();
+        count++;
     }
     
     ImGui::EndChild();
@@ -151,16 +160,13 @@ void PhageEditor::drawAminoAcidInfo() {
     auto codon = m_genome.getTailFiberCodons()[m_selected_codon];
     auto aa = codon.translate();
     
-    ImGui::Text("Selected Codon: %s", codon.toString().c_str());
-    ImGui::Text("Amino Acid: %s", core::aminoAcidToString(aa).c_str());
+    ImGui::Text("Selected: %s → %s", codon.toString().c_str(), core::aminoAcidToString(aa).c_str());
     
     if (aa != core::AminoAcidCode::STOP) {
         try {
             auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
-            ImGui::Text("Charge: %.2f e", props.net_charge_at_ph7);
-            ImGui::Text("Hydrophobicity: %.2f", props.hydrophobicity);
-            ImGui::Text("Molecular Weight: %.2f Da", props.molecular_weight);
-            ImGui::Text("Van der Waals Radius: %.2f nm", props.van_der_waals_radius);
+            ImGui::Text("Charge: %.2f e | Hydrophobicity: %.2f | MW: %.1f Da", 
+                props.net_charge_at_ph7, props.hydrophobicity, props.molecular_weight);
         } catch (const std::exception&) {
             ImGui::Text("Properties not available");
         }
@@ -170,63 +176,40 @@ void PhageEditor::drawAminoAcidInfo() {
 void PhageEditor::drawMutationControls() {
     ImGui::Text("Mutations:");
     
-    if (ImGui::Button("Randomize")) {
-        randomizeGenome();
-    }
+    if (ImGui::Button("Randomize", ImVec2(100, 30))) randomizeGenome();
     ImGui::SameLine();
-    
-    if (ImGui::Button("+1 Mutation")) {
-        addRandomMutation();
-    }
+    if (ImGui::Button("+1 Mutation", ImVec2(100, 30))) addRandomMutation();
     ImGui::SameLine();
-    
-    if (ImGui::Button("+5 Mutations")) {
+    if (ImGui::Button("+5 Mutations", ImVec2(100, 30))) {
         for (int i = 0; i < 5; ++i) addRandomMutation();
     }
     ImGui::SameLine();
-    
-    if (ImGui::Button("Clear")) {
-        clearGenome();
-    }
+    if (ImGui::Button("Clear", ImVec2(80, 30))) clearGenome();
 }
 
 void PhageEditor::drawGenomeStats() {
-    ImGui::Text("Genome Statistics:");
-    
     auto aa_sequence = m_genome.translateTailFiber();
-    
-    // Count amino acids
-    std::map<char, int> aa_counts;
     double total_charge = 0.0;
-    double total_hydrophobicity = 0.0;
     int valid_aa = 0;
+    int hydrophobic = 0;
+    int hydrophilic = 0;
+    int charged = 0;
     
     for (auto aa : aa_sequence) {
         if (aa != core::AminoAcidCode::STOP) {
             try {
                 auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
-                aa_counts[props.one_letter[0]]++;
                 total_charge += props.net_charge_at_ph7;
-                total_hydrophobicity += props.hydrophobicity;
+                if (props.hydrophobicity > 0) hydrophobic++;
+                else hydrophilic++;
+                if (std::abs(props.net_charge_at_ph7) > 0.5) charged++;
                 valid_aa++;
-            } catch (const std::exception&) {}
+            } catch (...) {}
         }
     }
     
-    ImGui::Text("Total Charge: %.2f e", total_charge);
-    ImGui::Text("Avg Hydrophobicity: %.2f", valid_aa > 0 ? total_hydrophobicity / valid_aa : 0.0);
-    ImGui::Text("Unique Amino Acids: %zu", aa_counts.size());
-    
-    // Show counts as a bar
-    std::string count_str;
-    for (const auto& [aa, count] : aa_counts) {
-        if (count > 0) {
-            count_str += std::string(1, aa) + ":" + std::to_string(count) + " ";
-        }
-    }
-    if (!count_str.empty()) {
-        ImGui::Text("Composition: %s", count_str.c_str());
-    }
+    ImGui::Text("Total Charge: %.2f e | Avg: %.2f e", total_charge, valid_aa > 0 ? total_charge / valid_aa : 0.0);
+    ImGui::Text("Hydrophobic: %d | Hydrophilic: %d | Charged: %d", hydrophobic, hydrophilic, charged);
 }
 
 void PhageEditor::drawCodonTable() {
@@ -234,24 +217,19 @@ void PhageEditor::drawCodonTable() {
     ImGui::Text("Standard Genetic Code");
     ImGui::Separator();
     
-    // Simplified codon table
     const char* codons[4][4][4] = {
-        // T
         {{"TTT F", "TCT S", "TAT Y", "TGT C"},
          {"TTC F", "TCC S", "TAC Y", "TGC C"},
          {"TTA L", "TCA S", "TAA STOP", "TGA STOP"},
          {"TTG L", "TCG S", "TAG STOP", "TGG W"}},
-        // C
         {{"CTT L", "CCT P", "CAT H", "CGT R"},
          {"CTC L", "CCC P", "CAC H", "CGC R"},
          {"CTA L", "CCA P", "CAA Q", "CGA R"},
          {"CTG L", "CCG P", "CAG Q", "CGG R"}},
-        // A
         {{"ATT I", "ACT T", "AAT N", "AGT S"},
          {"ATC I", "ACC T", "AAC N", "AGC S"},
          {"ATA I", "ACA T", "AAA K", "AGA R"},
          {"ATG M", "ACG T", "AAG K", "AGG R"}},
-        // G
         {{"GTT V", "GCT A", "GAT D", "GGT G"},
          {"GTC V", "GCC A", "GAC D", "GGC G"},
          {"GTA V", "GCA A", "GAA E", "GGA G"},
@@ -280,7 +258,6 @@ void PhageEditor::drawCodonTable() {
 
 const char* PhageEditor::getAminoColor(core::AminoAcidCode aa) {
     switch(aa) {
-        // Hydrophobic (yellow/orange)
         case core::AminoAcidCode::ALA:
         case core::AminoAcidCode::VAL:
         case core::AminoAcidCode::LEU:
@@ -290,22 +267,18 @@ const char* PhageEditor::getAminoColor(core::AminoAcidCode aa) {
         case core::AminoAcidCode::TRP:
         case core::AminoAcidCode::PRO:
             return "#FFD700";
-        // Charged positive (blue)
         case core::AminoAcidCode::LYS:
         case core::AminoAcidCode::ARG:
             return "#4169E1";
-        // Charged negative (red)
         case core::AminoAcidCode::ASP:
         case core::AminoAcidCode::GLU:
             return "#DC143C";
-        // Polar (green)
         case core::AminoAcidCode::SER:
         case core::AminoAcidCode::THR:
         case core::AminoAcidCode::TYR:
         case core::AminoAcidCode::ASN:
         case core::AminoAcidCode::GLN:
             return "#32CD32";
-        // Special
         case core::AminoAcidCode::CYS:
             return "#FF8C00";
         case core::AminoAcidCode::GLY:
