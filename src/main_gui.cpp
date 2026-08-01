@@ -27,7 +27,7 @@ struct AppState {
     bool show_binding_results = false;
     bool auto_update = true;
     bool show_help = false;
-    bool show_3d = true;
+    bool show_3d = false;  // Default off to save space
 };
 
 AppState g_state;
@@ -78,7 +78,7 @@ void renderHelp() {
     ImGui::End();
 }
 
-// Render 3D viewport
+// Render 3D viewport (as a separate window)
 void render3DViewport() {
     if (!g_state.show_3d) return;
     
@@ -149,14 +149,13 @@ void renderMainWindow() {
     
     ImGui::Separator();
     
-    // TWO columns: Editor | Results
-    float total_width = ImGui::GetWindowWidth() - 20.0f;
-    float editor_width = total_width * 0.50f;
-    float results_width = total_width * 0.50f;
+    // TWO columns: Editor | Results (50/50 split)
+    float total_width = ImGui::GetWindowWidth() - 30.0f;
+    float column_width = total_width * 0.50f;
     
     ImGui::Columns(2, "MainColumns", true);
-    ImGui::SetColumnWidth(0, editor_width);
-    ImGui::SetColumnWidth(1, results_width);
+    ImGui::SetColumnWidth(0, column_width);
+    ImGui::SetColumnWidth(1, column_width);
     
     // Column 1: Phage Editor
     ImGui::Text("Phage Genome Editor");
@@ -182,8 +181,9 @@ void renderMainWindow() {
         bool can_infect = physics::BindingAssay::isInfection(g_state.binding_energy);
         ImGui::Text("Infection: %s", can_infect ? "✅ Possible" : "❌ Not Possible");
         
+        // Progress bar
         float progress = std::min(1.0f, g_state.binding_score / 100.0f);
-        ImGui::ProgressBar(progress, ImVec2(-1, 35), 
+        ImGui::ProgressBar(progress, ImVec2(-1, 30), 
             std::to_string(int(g_state.binding_score)).c_str());
         
         ImGui::Separator();
@@ -201,7 +201,9 @@ void renderMainWindow() {
                 receptor.getPosition().z);
         }
         
-        if (ImGui::Button("Recalculate Binding", ImVec2(-1, 40))) {
+        // Make sure the button has enough space
+        ImGui::Dummy(ImVec2(0, 10));  // Add some spacing
+        if (ImGui::Button("Recalculate Binding", ImVec2(-1, 45))) {
             onGenomeChanged();
         }
     } else {
@@ -270,14 +272,14 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
     
-    io.FontGlobalScale = 2.2f;
+    io.FontGlobalScale = 2.0f;
     
-    ImGui::GetStyle().FramePadding = ImVec2(12, 12);
-    ImGui::GetStyle().ItemSpacing = ImVec2(14, 14);
-    ImGui::GetStyle().ItemInnerSpacing = ImVec2(12, 12);
-    ImGui::GetStyle().WindowPadding = ImVec2(20, 20);
-    ImGui::GetStyle().ScrollbarSize = 25.0f;
-    ImGui::GetStyle().GrabMinSize = 20.0f;
+    ImGui::GetStyle().FramePadding = ImVec2(10, 10);
+    ImGui::GetStyle().ItemSpacing = ImVec2(12, 12);
+    ImGui::GetStyle().ItemInnerSpacing = ImVec2(10, 10);
+    ImGui::GetStyle().WindowPadding = ImVec2(18, 18);
+    ImGui::GetStyle().ScrollbarSize = 22.0f;
+    ImGui::GetStyle().GrabMinSize = 18.0f;
     
     ImGui::StyleColorsDark();
     
