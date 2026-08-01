@@ -316,7 +316,7 @@ int main() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
     
-    io.FontGlobalScale = 2.5f;
+    io.FontGlobalScale = 2.3f;
     
     ImGui::GetStyle().FramePadding = ImVec2(10, 10);
     ImGui::GetStyle().ItemSpacing = ImVec2(12, 12);
