@@ -55,15 +55,12 @@ void PhageEditor::render() {
                 m_genome.size(), 
                 m_genome.translateTailFiber().size());
     
-    // DNA sequence
+    // DNA sequence - show first 60 chars
     ImGui::Separator();
     ImGui::Text("DNA Sequence:");
     std::string dna = m_genome.getDNASequence();
     if (dna.length() > 60) {
-        for (size_t i = 0; i < dna.length(); i += 60) {
-            size_t len = std::min(size_t(60), dna.length() - i);
-            ImGui::Text("%s", dna.substr(i, len).c_str());
-        }
+        ImGui::Text("%s...", dna.substr(0, 60).c_str());
     } else {
         ImGui::Text("%s", dna.c_str());
     }
@@ -84,14 +81,18 @@ void PhageEditor::render() {
 }
 
 void PhageEditor::drawCodonEditor() {
-    ImGui::Text("Codon Editor (click codon to select):");
+    ImGui::Text("Codon Editor (click to select):");
     
-    ImGui::BeginChild("CodonList", ImVec2(0, 280), true);
+    // Limit height to prevent black space
+    float available_height = ImGui::GetContentRegionAvail().y;
+    float child_height = std::min(200.0f, std::max(120.0f, available_height * 0.4f));
+    
+    ImGui::BeginChild("CodonList", ImVec2(0, child_height), true);
     
     auto aa_sequence = m_genome.translateTailFiber();
     
-    // Display as a grid with clear labels
-    int items_per_row = 5;
+    // Display as grid
+    int items_per_row = 4;
     int count = 0;
     
     for (size_t i = 0; i < m_genome.size() && i < 50; ++i) {
@@ -120,28 +121,26 @@ void PhageEditor::drawCodonEditor() {
         
         bool selected = (m_selected_codon == static_cast<int>(i));
         
-        // Bigger button with white text for visibility
+        // Smaller buttons that fit better
         ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.25f, 0.25f, 0.30f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f)); // White text
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         
-        if (ImGui::Button(codon_str.c_str(), ImVec2(85, 35))) {
+        // Use smaller buttons that fit in the column
+        if (ImGui::Button(codon_str.c_str(), ImVec2(65, 28))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
         
         ImGui::PopStyleColor(3);
         
-        // Show amino acid letter on the button with color
+        // Show amino acid letter on the same line
         ImGui::SameLine(0, 2);
         ImGui::TextColored(color, "%s", aa_str.c_str());
-        ImGui::SameLine(0, 2);
-        ImGui::TextDisabled("#%zu", i);
         
+        // Tooltip on hover
         if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Position %zu\nCodon: %s\nAmino Acid: %s\nCharge: %.2f", 
-                i, codon_str.c_str(), aa_str.c_str(),
-                (i < aa_sequence.size() && aa_sequence[i] != core::AminoAcidCode::STOP) ?
-                    biology::AminoAcidPropertiesManager::instance().getProperties(aa_sequence[i]).net_charge_at_ph7 : 0.0);
+            ImGui::SetTooltip("Position %zu\nCodon: %s\nAmino Acid: %s", 
+                i, codon_str.c_str(), aa_str.c_str());
         }
         
         ImGui::PopID();
@@ -165,8 +164,8 @@ void PhageEditor::drawAminoAcidInfo() {
     if (aa != core::AminoAcidCode::STOP) {
         try {
             auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
-            ImGui::Text("Charge: %.2f e | Hydrophobicity: %.2f | MW: %.1f Da", 
-                props.net_charge_at_ph7, props.hydrophobicity, props.molecular_weight);
+            ImGui::Text("Charge: %.2f e | Hydrophobicity: %.2f", 
+                props.net_charge_at_ph7, props.hydrophobicity);
         } catch (const std::exception&) {
             ImGui::Text("Properties not available");
         }
@@ -176,15 +175,24 @@ void PhageEditor::drawAminoAcidInfo() {
 void PhageEditor::drawMutationControls() {
     ImGui::Text("Mutations:");
     
-    if (ImGui::Button("Randomize", ImVec2(100, 30))) randomizeGenome();
+    // Use smaller buttons that fit in the column
+    float button_width = 90.0f;
+    
+    if (ImGui::Button("Randomize", ImVec2(button_width, 28))) {
+        randomizeGenome();
+    }
     ImGui::SameLine();
-    if (ImGui::Button("+1 Mutation", ImVec2(100, 30))) addRandomMutation();
+    if (ImGui::Button("+1", ImVec2(button_width, 28))) {
+        addRandomMutation();
+    }
     ImGui::SameLine();
-    if (ImGui::Button("+5 Mutations", ImVec2(100, 30))) {
+    if (ImGui::Button("+5", ImVec2(button_width, 28))) {
         for (int i = 0; i < 5; ++i) addRandomMutation();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Clear", ImVec2(80, 30))) clearGenome();
+    if (ImGui::Button("Clear", ImVec2(button_width, 28))) {
+        clearGenome();
+    }
 }
 
 void PhageEditor::drawGenomeStats() {
@@ -208,8 +216,8 @@ void PhageEditor::drawGenomeStats() {
         }
     }
     
-    ImGui::Text("Total Charge: %.2f e | Avg: %.2f e", total_charge, valid_aa > 0 ? total_charge / valid_aa : 0.0);
-    ImGui::Text("Hydrophobic: %d | Hydrophilic: %d | Charged: %d", hydrophobic, hydrophilic, charged);
+    ImGui::Text("Charge: %.2f e | Hydrophobic: %d | Charged: %d", 
+        total_charge, hydrophobic, charged);
 }
 
 void PhageEditor::drawCodonTable() {
