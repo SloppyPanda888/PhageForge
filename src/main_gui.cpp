@@ -172,11 +172,15 @@ void renderMainWindow() {
         // Display binding energy with color based on value
         if (g_state.binding_energy < -15.0f) {
             ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
+            ImGui::Text("Status: Strong Binding ✅");
         } else if (g_state.binding_energy < 0.0f) {
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.2f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
+            ImGui::Text("Status: Weak Binding ⚠️");
         } else {
             ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
+            ImGui::Text("Status: No Binding ❌");
         }
+        
         ImGui::Text("Binding Score: %.1f/100", g_state.binding_score);
         
         std::string desc = physics::BindingAssay::getBindingDescription(g_state.binding_energy);
