@@ -27,7 +27,7 @@ struct AppState {
     bool show_binding_results = false;
     bool auto_update = true;
     bool show_help = false;
-    bool show_3d = false;  // Default off to save space
+    bool show_3d = false;
 };
 
 AppState g_state;
@@ -78,7 +78,7 @@ void renderHelp() {
     ImGui::End();
 }
 
-// Render 3D viewport (as a separate window)
+// Render 3D viewport
 void render3DViewport() {
     if (!g_state.show_3d) return;
     
@@ -149,7 +149,7 @@ void renderMainWindow() {
     
     ImGui::Separator();
     
-    // TWO columns: Editor | Results (50/50 split)
+    // TWO columns: Editor | Results
     float total_width = ImGui::GetWindowWidth() - 30.0f;
     float column_width = total_width * 0.50f;
     
@@ -201,9 +201,8 @@ void renderMainWindow() {
                 receptor.getPosition().z);
         }
         
-        // Make sure the button has enough space
-        ImGui::Dummy(ImVec2(0, 10));  // Add some spacing
-        if (ImGui::Button("Recalculate Binding", ImVec2(-1, 45))) {
+        ImGui::Dummy(ImVec2(0, 10));
+        if (ImGui::Button("Recalculate Binding", ImVec2(-1, 40))) {
             onGenomeChanged();
         }
     } else {
@@ -292,7 +291,7 @@ int main() {
     g_state.editor.setGenome(g_state.phage_genome);
     g_state.editor.setOnMutation(onGenomeChanged);
     
-    // Bacteria
+    // Bacteria - only 3 receptors (no duplicates!)
     biology::Receptor r1;
     r1.setPosition({0.0, 0.0, 0.0});
     r1.setCharge(-1.5);
