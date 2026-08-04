@@ -55,7 +55,7 @@ void PhageEditor::render() {
                 m_genome.size(), 
                 m_genome.translateTailFiber().size());
     
-    // DNA sequence - show first 60 chars
+    // DNA sequence
     ImGui::Separator();
     ImGui::Text("DNA Sequence:");
     std::string dna = m_genome.getDNASequence();
@@ -83,11 +83,8 @@ void PhageEditor::render() {
 void PhageEditor::drawCodonEditor() {
     ImGui::Text("Codon Editor (click to select):");
     
-    // Limit height to prevent black space
-    float available_height = ImGui::GetContentRegionAvail().y;
-    float child_height = std::min(200.0f, std::max(120.0f, available_height * 0.4f));
-    
-    ImGui::BeginChild("CodonList", ImVec2(0, child_height), true);
+    // Fixed height for codon list
+    ImGui::BeginChild("CodonList", ImVec2(0, 220), true);
     
     auto aa_sequence = m_genome.translateTailFiber();
     
@@ -121,19 +118,19 @@ void PhageEditor::drawCodonEditor() {
         
         bool selected = (m_selected_codon == static_cast<int>(i));
         
-        // Smaller buttons that fit better
+        // Bigger buttons with white text
         ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.25f, 0.25f, 0.30f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         
-        // Use smaller buttons that fit in the column
-        if (ImGui::Button(codon_str.c_str(), ImVec2(65, 28))) {
+        // Use wider buttons (80px)
+        if (ImGui::Button(codon_str.c_str(), ImVec2(80, 30))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
         
         ImGui::PopStyleColor(3);
         
-        // Show amino acid letter on the same line
+        // Show amino acid letter
         ImGui::SameLine(0, 2);
         ImGui::TextColored(color, "%s", aa_str.c_str());
         
@@ -175,22 +172,25 @@ void PhageEditor::drawAminoAcidInfo() {
 void PhageEditor::drawMutationControls() {
     ImGui::Text("Mutations:");
     
-    // Use smaller buttons that fit in the column
-    float button_width = 90.0f;
+    // Use buttons that fit in the column
+    // Calculate available width and divide
+    float avail_width = ImGui::GetContentRegionAvail().x;
+    float button_width = (avail_width - 30.0f) / 4.0f; // 4 buttons with spacing
+    button_width = std::max(60.0f, std::min(100.0f, button_width));
     
-    if (ImGui::Button("Randomize", ImVec2(button_width, 28))) {
+    if (ImGui::Button("Randomize", ImVec2(button_width, 30))) {
         randomizeGenome();
     }
     ImGui::SameLine();
-    if (ImGui::Button("+1", ImVec2(button_width, 28))) {
+    if (ImGui::Button("+1", ImVec2(button_width, 30))) {
         addRandomMutation();
     }
     ImGui::SameLine();
-    if (ImGui::Button("+5", ImVec2(button_width, 28))) {
+    if (ImGui::Button("+5", ImVec2(button_width, 30))) {
         for (int i = 0; i < 5; ++i) addRandomMutation();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Clear", ImVec2(button_width, 28))) {
+    if (ImGui::Button("Clear", ImVec2(button_width, 30))) {
         clearGenome();
     }
 }
