@@ -172,13 +172,13 @@ void renderMainWindow() {
         // Display binding energy with color based on value
         if (g_state.binding_energy < -15.0f) {
             ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
-            ImGui::Text("Status: Strong Binding ✅");
+            ImGui::Text("Status: ✅ Strong Binding");
         } else if (g_state.binding_energy < 0.0f) {
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.2f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
-            ImGui::Text("Status: Weak Binding ⚠️");
+            ImGui::Text("Status: ⚠️ Weak Binding");
         } else {
             ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
-            ImGui::Text("Status: No Binding ❌");
+            ImGui::Text("Status: ❌ No Binding");
         }
         
         ImGui::Text("Binding Score: %.1f/100", g_state.binding_score);
@@ -192,7 +192,7 @@ void renderMainWindow() {
         bool can_infect = physics::BindingAssay::isInfection(g_state.binding_energy);
         ImGui::Text("Infection: %s", can_infect ? "✅ Possible" : "❌ Not Possible");
         
-        // Progress bar
+        // Progress bar with color
         float progress = std::min(1.0f, g_state.binding_score / 100.0f);
         ImGui::ProgressBar(progress, ImVec2(-1, 30), 
             std::to_string(int(g_state.binding_score)).c_str());
@@ -323,7 +323,7 @@ int main() {
     biology::Receptor r3;
     r3.setPosition({-0.8, 0.5, 0.0});
     r3.setCharge(-1.2);
-    r3.setType("LamB");
+    r3.setType("LamB");  // Fixed: "LamB" not "Lamb"
     g_state.bacteria.addReceptor(r3);
     
     onGenomeChanged();
