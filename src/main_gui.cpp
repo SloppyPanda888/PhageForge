@@ -169,7 +169,14 @@ void renderMainWindow() {
     ImGui::Separator();
     
     if (g_state.show_binding_results) {
-        ImGui::Text("Binding Energy: %.2f kJ/mol", g_state.binding_energy);
+        // Display binding energy with color based on value
+        if (g_state.binding_energy < -15.0f) {
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
+        } else if (g_state.binding_energy < 0.0f) {
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.2f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
+        } else {
+            ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Binding Energy: %.2f kJ/mol", g_state.binding_energy);
+        }
         ImGui::Text("Binding Score: %.1f/100", g_state.binding_score);
         
         std::string desc = physics::BindingAssay::getBindingDescription(g_state.binding_energy);
@@ -291,12 +298,12 @@ int main() {
     g_state.editor.setGenome(g_state.phage_genome);
     g_state.editor.setOnMutation(onGenomeChanged);
     
-    // CRITICAL FIX: Clear any existing bacteria and start fresh
+    // Clear and set bacteria
     g_state.bacteria.clearReceptors();
     g_state.bacteria.setName("E. coli O157:H7");
     g_state.bacteria.setPopulationDensity(1.0);
     
-    // Add exactly 3 receptors (NO DUPLICATES!)
+    // Add exactly 3 receptors
     biology::Receptor r1;
     r1.setPosition({0.0, 0.0, 0.0});
     r1.setCharge(-1.5);
@@ -321,7 +328,7 @@ int main() {
     std::cout << "   Press ESC to exit" << std::endl;
     std::cout << "   Press F1 for help" << std::endl;
     std::cout << "   Window size: " << window_width << "x" << window_height << std::endl;
-    std::cout << "   Receptors added: " << g_state.bacteria.getReceptors().size() << std::endl;
+    std::cout << "   Receptors: " << g_state.bacteria.getReceptors().size() << std::endl;
     
     // Main loop
     while (!glfwWindowShouldClose(window)) {
