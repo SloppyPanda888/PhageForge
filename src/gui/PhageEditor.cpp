@@ -71,7 +71,6 @@ void PhageEditor::render() {
     drawAminoAcidInfo();
     ImGui::Separator();
     drawMutationControls();
-    ImGui::Separator();  // Add separator before stats
     drawGenomeStats();
     
     ImGui::End();
@@ -84,12 +83,12 @@ void PhageEditor::render() {
 void PhageEditor::drawCodonEditor() {
     ImGui::Text("Codon Editor (click to select):");
     
-    ImGui::BeginChild("CodonList", ImVec2(0, 200), true);
+    ImGui::BeginChild("CodonList", ImVec2(0, 180), true);
     
     auto aa_sequence = m_genome.translateTailFiber();
     
-    // Display as grid - fewer items per row to give more space
-    int items_per_row = 3;
+    // Display as grid - 2 per row to give maximum space
+    int items_per_row = 2;
     int count = 0;
     
     for (size_t i = 0; i < m_genome.size() && i < 50; ++i) {
@@ -102,9 +101,11 @@ void PhageEditor::drawCodonEditor() {
         auto codon = m_genome.getTailFiberCodons()[i];
         std::string codon_str = codon.toString();
         
-        // Get amino acid letter
+        // Get amino acid
         std::string aa_str = "STOP";
-        ImVec4 color = ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+        ImVec4 color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+        bool is_stop = false;
+        
         if (i < aa_sequence.size() && aa_sequence[i] != core::AminoAcidCode::STOP) {
             auto aa = aa_sequence[i];
             try {
@@ -114,25 +115,27 @@ void PhageEditor::drawCodonEditor() {
             } catch (...) {
                 aa_str = "?";
             }
+        } else {
+            is_stop = true;
         }
         
         bool selected = (m_selected_codon == static_cast<int>(i));
         
-        // Wider buttons with white text
-        ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.25f, 0.25f, 0.30f, 1.0f));
+        // Make a clean button with codon and amino acid
+        std::string button_label = codon_str + " → " + aa_str;
+        
+        ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.20f, 0.20f, 0.25f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         
-        // Wider buttons (100px) to fit codon + amino acid
-        if (ImGui::Button(codon_str.c_str(), ImVec2(100, 30))) {
+        // Wider button to fit codon + amino acid
+        if (ImGui::Button(button_label.c_str(), ImVec2(120, 30))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
         
         ImGui::PopStyleColor(3);
         
-        // Show amino acid letter on the same line with space
-        ImGui::SameLine(0, 4);
-        ImGui::TextColored(color, "%s", aa_str.c_str());
+        // Show position number
         ImGui::SameLine(0, 4);
         ImGui::TextDisabled("#%zu", i);
         
@@ -176,24 +179,23 @@ void PhageEditor::drawMutationControls() {
     
     // Calculate available width and divide evenly
     float avail_width = ImGui::GetContentRegionAvail().x;
-    float button_width = (avail_width - 40.0f) / 4.0f; // 4 buttons with spacing
-    button_width = std::max(70.0f, std::min(110.0f, button_width));
+    float button_width = (avail_width - 30.0f) / 4.0f;
+    button_width = std::max(70.0f, std::min(100.0f, button_width));
     
-    // Use same height for all buttons
-    float button_height = 32.0f;
+    float button_height = 30.0f;
     
     if (ImGui::Button("Randomize", ImVec2(button_width, button_height))) {
         randomizeGenome();
     }
-    ImGui::SameLine();
+    ImGui::SameLine(0, 8);
     if (ImGui::Button("+1", ImVec2(button_width, button_height))) {
         addRandomMutation();
     }
-    ImGui::SameLine();
+    ImGui::SameLine(0, 8);
     if (ImGui::Button("+5", ImVec2(button_width, button_height))) {
         for (int i = 0; i < 5; ++i) addRandomMutation();
     }
-    ImGui::SameLine();
+    ImGui::SameLine(0, 8);
     if (ImGui::Button("Clear", ImVec2(button_width, button_height))) {
         clearGenome();
     }
