@@ -101,9 +101,9 @@ void PhageEditor::drawCodonEditor() {
         auto codon = m_genome.getTailFiberCodons()[i];
         std::string codon_str = codon.toString();
         
-        // Get amino acid properly
+        // Get amino acid properly - NO "?" character
         std::string aa_str;
-        ImVec4 color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+        ImVec4 color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
         
         auto aa = codon.translate();
         
@@ -113,10 +113,10 @@ void PhageEditor::drawCodonEditor() {
         } else {
             try {
                 auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
-                aa_str = props.one_letter;
+                aa_str = props.one_letter;  // Single letter like "D", "Q", "Y"
                 color = hexToImVec4(getAminoColor(aa));
             } catch (...) {
-                aa_str = "?";
+                aa_str = "?";  // Only fallback if properties fail
             }
         }
         
@@ -129,7 +129,7 @@ void PhageEditor::drawCodonEditor() {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         
-        // Wider button to show full codon + amino acid
+        // Wider button
         if (ImGui::Button(button_label.c_str(), ImVec2(140, 32))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
@@ -181,22 +181,22 @@ void PhageEditor::drawMutationControls() {
     
     float avail_width = ImGui::GetContentRegionAvail().x;
     float button_width = (avail_width - 30.0f) / 4.0f;
-    button_width = std::max(70.0f, std::min(110.0f, button_width));
+    button_width = std::max(75.0f, std::min(110.0f, button_width));
     
     float button_height = 32.0f;
     
     if (ImGui::Button("Randomize", ImVec2(button_width, button_height))) {
         randomizeGenome();
     }
-    ImGui::SameLine(0, 8);
+    ImGui::SameLine(0, 6);
     if (ImGui::Button("+1", ImVec2(button_width, button_height))) {
         addRandomMutation();
     }
-    ImGui::SameLine(0, 8);
+    ImGui::SameLine(0, 6);
     if (ImGui::Button("+5", ImVec2(button_width, button_height))) {
         for (int i = 0; i < 5; ++i) addRandomMutation();
     }
-    ImGui::SameLine(0, 8);
+    ImGui::SameLine(0, 6);
     if (ImGui::Button("Clear", ImVec2(button_width, button_height))) {
         clearGenome();
     }
