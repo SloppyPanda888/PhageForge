@@ -291,7 +291,11 @@ int main() {
     g_state.editor.setGenome(g_state.phage_genome);
     g_state.editor.setOnMutation(onGenomeChanged);
     
-    // Bacteria - only 3 receptors (no duplicates!)
+    // Bacteria - clean, no duplicates
+    g_state.bacteria.setName("E. coli O157:H7");
+    g_state.bacteria.setPopulationDensity(1.0);
+    
+    // Add receptors (only 3, no duplicates)
     biology::Receptor r1;
     r1.setPosition({0.0, 0.0, 0.0});
     r1.setCharge(-1.5);
@@ -309,9 +313,6 @@ int main() {
     r3.setCharge(-1.2);
     r3.setType("LamB");
     g_state.bacteria.addReceptor(r3);
-    
-    g_state.bacteria.setName("E. coli O157:H7");
-    g_state.bacteria.setPopulationDensity(1.0);
     
     onGenomeChanged();
     
