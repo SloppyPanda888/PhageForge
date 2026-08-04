@@ -101,23 +101,30 @@ void PhageEditor::drawCodonEditor() {
         auto codon = m_genome.getTailFiberCodons()[i];
         std::string codon_str = codon.toString();
         
-        // Get amino acid properly - NO "?" character
+        // Get amino acid - use the sequence directly
         std::string aa_str;
         ImVec4 color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
         
-        auto aa = codon.translate();
-        
-        if (aa == core::AminoAcidCode::STOP) {
-            aa_str = "STOP";
-            color = ImVec4(0.9f, 0.2f, 0.2f, 1.0f); // Red for STOP
-        } else {
-            try {
-                auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
-                aa_str = props.one_letter;  // Single letter like "D", "Q", "Y"
-                color = hexToImVec4(getAminoColor(aa));
-            } catch (...) {
-                aa_str = "?";  // Only fallback if properties fail
+        if (i < aa_sequence.size()) {
+            auto aa = aa_sequence[i];
+            if (aa == core::AminoAcidCode::STOP) {
+                aa_str = "STOP";
+                color = ImVec4(0.9f, 0.2f, 0.2f, 1.0f);
+            } else {
+                try {
+                    auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
+                    aa_str = props.one_letter;
+                    color = hexToImVec4(getAminoColor(aa));
+                } catch (...) {
+                    // If properties fail, use the amino acid name
+                    aa_str = core::aminoAcidToString(aa);
+                    if (aa_str.length() > 1) {
+                        aa_str = aa_str.substr(0, 1);
+                    }
+                }
             }
+        } else {
+            aa_str = "?";
         }
         
         bool selected = (m_selected_codon == static_cast<int>(i));
@@ -129,7 +136,6 @@ void PhageEditor::drawCodonEditor() {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         
-        // Wider button
         if (ImGui::Button(button_label.c_str(), ImVec2(140, 32))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
@@ -177,11 +183,11 @@ void PhageEditor::drawAminoAcidInfo() {
 }
 
 void PhageEditor::drawMutationControls() {
-    ImGui::Text("Mutations:");
+    ImGui::Text("Mutations");
     
     float avail_width = ImGui::GetContentRegionAvail().x;
     float button_width = (avail_width - 30.0f) / 4.0f;
-    button_width = std::max(75.0f, std::min(110.0f, button_width));
+    button_width = std::max(80.0f, std::min(120.0f, button_width));
     
     float button_height = 32.0f;
     
