@@ -71,6 +71,7 @@ void PhageEditor::render() {
     drawAminoAcidInfo();
     ImGui::Separator();
     drawMutationControls();
+    ImGui::Separator();  // Add separator before stats
     drawGenomeStats();
     
     ImGui::End();
@@ -83,13 +84,12 @@ void PhageEditor::render() {
 void PhageEditor::drawCodonEditor() {
     ImGui::Text("Codon Editor (click to select):");
     
-    // Fixed height for codon list
-    ImGui::BeginChild("CodonList", ImVec2(0, 220), true);
+    ImGui::BeginChild("CodonList", ImVec2(0, 200), true);
     
     auto aa_sequence = m_genome.translateTailFiber();
     
-    // Display as grid
-    int items_per_row = 4;
+    // Display as grid - fewer items per row to give more space
+    int items_per_row = 3;
     int count = 0;
     
     for (size_t i = 0; i < m_genome.size() && i < 50; ++i) {
@@ -118,21 +118,23 @@ void PhageEditor::drawCodonEditor() {
         
         bool selected = (m_selected_codon == static_cast<int>(i));
         
-        // Bigger buttons with white text
+        // Wider buttons with white text
         ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.25f, 0.25f, 0.30f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         
-        // Use wider buttons (80px)
-        if (ImGui::Button(codon_str.c_str(), ImVec2(80, 30))) {
+        // Wider buttons (100px) to fit codon + amino acid
+        if (ImGui::Button(codon_str.c_str(), ImVec2(100, 30))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
         
         ImGui::PopStyleColor(3);
         
-        // Show amino acid letter
-        ImGui::SameLine(0, 2);
+        // Show amino acid letter on the same line with space
+        ImGui::SameLine(0, 4);
         ImGui::TextColored(color, "%s", aa_str.c_str());
+        ImGui::SameLine(0, 4);
+        ImGui::TextDisabled("#%zu", i);
         
         // Tooltip on hover
         if (ImGui::IsItemHovered()) {
@@ -172,25 +174,27 @@ void PhageEditor::drawAminoAcidInfo() {
 void PhageEditor::drawMutationControls() {
     ImGui::Text("Mutations:");
     
-    // Use buttons that fit in the column
-    // Calculate available width and divide
+    // Calculate available width and divide evenly
     float avail_width = ImGui::GetContentRegionAvail().x;
-    float button_width = (avail_width - 30.0f) / 4.0f; // 4 buttons with spacing
-    button_width = std::max(60.0f, std::min(100.0f, button_width));
+    float button_width = (avail_width - 40.0f) / 4.0f; // 4 buttons with spacing
+    button_width = std::max(70.0f, std::min(110.0f, button_width));
     
-    if (ImGui::Button("Randomize", ImVec2(button_width, 30))) {
+    // Use same height for all buttons
+    float button_height = 32.0f;
+    
+    if (ImGui::Button("Randomize", ImVec2(button_width, button_height))) {
         randomizeGenome();
     }
     ImGui::SameLine();
-    if (ImGui::Button("+1", ImVec2(button_width, 30))) {
+    if (ImGui::Button("+1", ImVec2(button_width, button_height))) {
         addRandomMutation();
     }
     ImGui::SameLine();
-    if (ImGui::Button("+5", ImVec2(button_width, 30))) {
+    if (ImGui::Button("+5", ImVec2(button_width, button_height))) {
         for (int i = 0; i < 5; ++i) addRandomMutation();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Clear", ImVec2(button_width, 30))) {
+    if (ImGui::Button("Clear", ImVec2(button_width, button_height))) {
         clearGenome();
     }
 }
@@ -216,7 +220,7 @@ void PhageEditor::drawGenomeStats() {
         }
     }
     
-    ImGui::Text("Charge: %.2f e | Hydrophobic: %d | Charged: %d", 
+    ImGui::Text("Total Charge: %.2f e | Hydrophobic: %d | Charged: %d", 
         total_charge, hydrophobic, charged);
 }
 
