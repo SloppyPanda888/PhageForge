@@ -291,11 +291,12 @@ int main() {
     g_state.editor.setGenome(g_state.phage_genome);
     g_state.editor.setOnMutation(onGenomeChanged);
     
-    // Bacteria - clean, no duplicates
+    // CRITICAL FIX: Clear any existing bacteria and start fresh
+    g_state.bacteria.clearReceptors();
     g_state.bacteria.setName("E. coli O157:H7");
     g_state.bacteria.setPopulationDensity(1.0);
     
-    // Add receptors (only 3, no duplicates)
+    // Add exactly 3 receptors (NO DUPLICATES!)
     biology::Receptor r1;
     r1.setPosition({0.0, 0.0, 0.0});
     r1.setCharge(-1.5);
@@ -320,6 +321,7 @@ int main() {
     std::cout << "   Press ESC to exit" << std::endl;
     std::cout << "   Press F1 for help" << std::endl;
     std::cout << "   Window size: " << window_width << "x" << window_height << std::endl;
+    std::cout << "   Receptors added: " << g_state.bacteria.getReceptors().size() << std::endl;
     
     // Main loop
     while (!glfwWindowShouldClose(window)) {
