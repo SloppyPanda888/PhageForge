@@ -71,6 +71,7 @@ void PhageEditor::render() {
     drawAminoAcidInfo();
     ImGui::Separator();
     drawMutationControls();
+    ImGui::Separator();
     drawGenomeStats();
     
     ImGui::End();
@@ -83,11 +84,10 @@ void PhageEditor::render() {
 void PhageEditor::drawCodonEditor() {
     ImGui::Text("Codon Editor (click to select):");
     
-    ImGui::BeginChild("CodonList", ImVec2(0, 180), true);
+    ImGui::BeginChild("CodonList", ImVec2(0, 200), true);
     
     auto aa_sequence = m_genome.translateTailFiber();
     
-    // Display codons with proper amino acid mapping
     int items_per_row = 2;
     int count = 0;
     
@@ -105,14 +105,12 @@ void PhageEditor::drawCodonEditor() {
         std::string aa_str;
         ImVec4 color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
         
-        // Check if this codon translates to an amino acid
         auto aa = codon.translate();
         
         if (aa == core::AminoAcidCode::STOP) {
             aa_str = "STOP";
-            color = ImVec4(0.8f, 0.2f, 0.2f, 1.0f); // Red for STOP
+            color = ImVec4(0.9f, 0.2f, 0.2f, 1.0f); // Red for STOP
         } else {
-            // Get the one-letter code
             try {
                 auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
                 aa_str = props.one_letter;
@@ -124,24 +122,25 @@ void PhageEditor::drawCodonEditor() {
         
         bool selected = (m_selected_codon == static_cast<int>(i));
         
-        // Create button label: "ATG → M" or "TAA → STOP"
+        // Clean button format: "ATG → M" or "TAA → STOP"
         std::string button_label = codon_str + " → " + aa_str;
         
-        ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.20f, 0.20f, 0.25f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.20f, 0.20f, 0.28f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         
-        if (ImGui::Button(button_label.c_str(), ImVec2(130, 30))) {
+        // Wider button to show full codon + amino acid
+        if (ImGui::Button(button_label.c_str(), ImVec2(140, 32))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
         
         ImGui::PopStyleColor(3);
         
         // Show position number
-        ImGui::SameLine(0, 4);
+        ImGui::SameLine(0, 6);
         ImGui::TextDisabled("#%zu", i);
         
-        // Tooltip on hover
+        // Tooltip
         if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("Position %zu\nCodon: %s\nAmino Acid: %s", 
                 i, codon_str.c_str(), aa_str.c_str());
@@ -182,9 +181,9 @@ void PhageEditor::drawMutationControls() {
     
     float avail_width = ImGui::GetContentRegionAvail().x;
     float button_width = (avail_width - 30.0f) / 4.0f;
-    button_width = std::max(70.0f, std::min(100.0f, button_width));
+    button_width = std::max(70.0f, std::min(110.0f, button_width));
     
-    float button_height = 30.0f;
+    float button_height = 32.0f;
     
     if (ImGui::Button("Randomize", ImVec2(button_width, button_height))) {
         randomizeGenome();
@@ -225,14 +224,6 @@ void PhageEditor::drawGenomeStats() {
             if (std::abs(props.net_charge_at_ph7) > 0.5) charged++;
             valid_aa++;
         } catch (...) {}
-    }
-    
-    // Also count STOP codons in the genome
-    for (size_t i = 0; i < m_genome.size(); ++i) {
-        auto codon = m_genome.getTailFiberCodons()[i];
-        if (codon.translate() == core::AminoAcidCode::STOP) {
-            // Already counted above, but double-check
-        }
     }
     
     ImGui::Text("Valid AA: %d | STOP: %d | Total: %zu", 
