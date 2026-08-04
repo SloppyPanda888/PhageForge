@@ -87,7 +87,7 @@ void PhageEditor::drawCodonEditor() {
     
     auto aa_sequence = m_genome.translateTailFiber();
     
-    // Display as grid - 2 per row to give maximum space
+    // Display codons with proper amino acid mapping
     int items_per_row = 2;
     int count = 0;
     
@@ -101,13 +101,18 @@ void PhageEditor::drawCodonEditor() {
         auto codon = m_genome.getTailFiberCodons()[i];
         std::string codon_str = codon.toString();
         
-        // Get amino acid
-        std::string aa_str = "STOP";
+        // Get amino acid properly
+        std::string aa_str;
         ImVec4 color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-        bool is_stop = false;
         
-        if (i < aa_sequence.size() && aa_sequence[i] != core::AminoAcidCode::STOP) {
-            auto aa = aa_sequence[i];
+        // Check if this codon translates to an amino acid
+        auto aa = codon.translate();
+        
+        if (aa == core::AminoAcidCode::STOP) {
+            aa_str = "STOP";
+            color = ImVec4(0.8f, 0.2f, 0.2f, 1.0f); // Red for STOP
+        } else {
+            // Get the one-letter code
             try {
                 auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
                 aa_str = props.one_letter;
@@ -115,21 +120,18 @@ void PhageEditor::drawCodonEditor() {
             } catch (...) {
                 aa_str = "?";
             }
-        } else {
-            is_stop = true;
         }
         
         bool selected = (m_selected_codon == static_cast<int>(i));
         
-        // Make a clean button with codon and amino acid
+        // Create button label: "ATG → M" or "TAA → STOP"
         std::string button_label = codon_str + " → " + aa_str;
         
         ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.20f, 0.20f, 0.25f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.6f, 1.0f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
         
-        // Wider button to fit codon + amino acid
-        if (ImGui::Button(button_label.c_str(), ImVec2(120, 30))) {
+        if (ImGui::Button(button_label.c_str(), ImVec2(130, 30))) {
             m_selected_codon = selected ? -1 : static_cast<int>(i);
         }
         
@@ -161,7 +163,8 @@ void PhageEditor::drawAminoAcidInfo() {
     auto codon = m_genome.getTailFiberCodons()[m_selected_codon];
     auto aa = codon.translate();
     
-    ImGui::Text("Selected: %s → %s", codon.toString().c_str(), core::aminoAcidToString(aa).c_str());
+    std::string aa_name = core::aminoAcidToString(aa);
+    ImGui::Text("Selected: %s → %s", codon.toString().c_str(), aa_name.c_str());
     
     if (aa != core::AminoAcidCode::STOP) {
         try {
@@ -177,7 +180,6 @@ void PhageEditor::drawAminoAcidInfo() {
 void PhageEditor::drawMutationControls() {
     ImGui::Text("Mutations:");
     
-    // Calculate available width and divide evenly
     float avail_width = ImGui::GetContentRegionAvail().x;
     float button_width = (avail_width - 30.0f) / 4.0f;
     button_width = std::max(70.0f, std::min(100.0f, button_width));
@@ -208,20 +210,33 @@ void PhageEditor::drawGenomeStats() {
     int hydrophobic = 0;
     int hydrophilic = 0;
     int charged = 0;
+    int stop_codons = 0;
     
     for (auto aa : aa_sequence) {
-        if (aa != core::AminoAcidCode::STOP) {
-            try {
-                auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
-                total_charge += props.net_charge_at_ph7;
-                if (props.hydrophobicity > 0) hydrophobic++;
-                else hydrophilic++;
-                if (std::abs(props.net_charge_at_ph7) > 0.5) charged++;
-                valid_aa++;
-            } catch (...) {}
+        if (aa == core::AminoAcidCode::STOP) {
+            stop_codons++;
+            continue;
+        }
+        try {
+            auto props = biology::AminoAcidPropertiesManager::instance().getProperties(aa);
+            total_charge += props.net_charge_at_ph7;
+            if (props.hydrophobicity > 0) hydrophobic++;
+            else hydrophilic++;
+            if (std::abs(props.net_charge_at_ph7) > 0.5) charged++;
+            valid_aa++;
+        } catch (...) {}
+    }
+    
+    // Also count STOP codons in the genome
+    for (size_t i = 0; i < m_genome.size(); ++i) {
+        auto codon = m_genome.getTailFiberCodons()[i];
+        if (codon.translate() == core::AminoAcidCode::STOP) {
+            // Already counted above, but double-check
         }
     }
     
+    ImGui::Text("Valid AA: %d | STOP: %d | Total: %zu", 
+        valid_aa, stop_codons, m_genome.size());
     ImGui::Text("Total Charge: %.2f e | Hydrophobic: %d | Charged: %d", 
         total_charge, hydrophobic, charged);
 }
