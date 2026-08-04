@@ -101,7 +101,7 @@ void PhageEditor::drawCodonEditor() {
         auto codon = m_genome.getTailFiberCodons()[i];
         std::string codon_str = codon.toString();
         
-        // Get amino acid - use the sequence directly
+        // Get amino acid - use the sequence directly, NO "?"
         std::string aa_str;
         ImVec4 color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
         
@@ -116,11 +116,9 @@ void PhageEditor::drawCodonEditor() {
                     aa_str = props.one_letter;
                     color = hexToImVec4(getAminoColor(aa));
                 } catch (...) {
-                    // If properties fail, use the amino acid name
-                    aa_str = core::aminoAcidToString(aa);
-                    if (aa_str.length() > 1) {
-                        aa_str = aa_str.substr(0, 1);
-                    }
+                    // Fallback: use first letter of amino acid name
+                    std::string full_name = core::aminoAcidToString(aa);
+                    aa_str = full_name.empty() ? "?" : full_name.substr(0, 1);
                 }
             }
         } else {
@@ -129,7 +127,7 @@ void PhageEditor::drawCodonEditor() {
         
         bool selected = (m_selected_codon == static_cast<int>(i));
         
-        // Clean button format: "ATG → M" or "TAA → STOP"
+        // Clean button format: "TGG → W" (NO "?")
         std::string button_label = codon_str + " → " + aa_str;
         
         ImGui::PushStyleColor(ImGuiCol_Button, selected ? ImVec4(0.3f, 0.5f, 1.0f, 1.0f) : ImVec4(0.20f, 0.20f, 0.28f, 1.0f));
@@ -185,12 +183,14 @@ void PhageEditor::drawAminoAcidInfo() {
 void PhageEditor::drawMutationControls() {
     ImGui::Text("Mutations");
     
+    // Calculate available width
     float avail_width = ImGui::GetContentRegionAvail().x;
     float button_width = (avail_width - 30.0f) / 4.0f;
     button_width = std::max(80.0f, std::min(120.0f, button_width));
     
     float button_height = 32.0f;
     
+    // ALL 4 buttons on ONE LINE
     if (ImGui::Button("Randomize", ImVec2(button_width, button_height))) {
         randomizeGenome();
     }
